@@ -59,16 +59,16 @@ export default function ListProperty() {
     }));
   };
 
-   const handleSubmit = async () => {
+  const handleSubmit = async () => {
     if (!form.broker_confirmed) {
       toast.error("You must confirm the broker-free pledge to list on MYRENT.");
       return;
     }
 
     try {
-      // 1. Send form data matching your object mapping structure
+      // 1. Send form data matching your object mapping structure cleanly
       const { data, error } = await supabase
-        .from('Listing') // Case-sensitive match to your exact Supabase table
+        .from('Listing') 
         .insert([
           { 
             title: form.title, 
@@ -83,7 +83,7 @@ export default function ListProperty() {
         return;
       }
 
-      // 2. Clear state on success
+      // 2. Transition user to the success screen
       setSubmitted(true);
       toast.success("Listing submitted for verification!", {
         description: "Our team will review your documents within 24-48 hours.",
@@ -95,20 +95,12 @@ export default function ListProperty() {
     }
   };
 
-    // 3. Mark as submitted if successful
-    setSubmitted(true);
-    toast.success("Listing submitted for verification!", {
-      description: "Our team will review your documents within 24-48 hours.",
-    });
-  };
-
   const steps = [
     { n: 1, label: "Your Details" },
     { n: 2, label: "Property Info" },
     { n: 3, label: "Utilities & Amenities" },
     { n: 4, label: "Verify & Submit" },
   ];
-
   if (submitted) {
     return (
       <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
