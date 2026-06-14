@@ -2,6 +2,6 @@
   "name": "myrentnepal",
   "compatibility_date": "2026-06-14",
   "assets": {
-    "directory": "./client/dist/public"
+    "directory": "./dist/public"
   }
 }
