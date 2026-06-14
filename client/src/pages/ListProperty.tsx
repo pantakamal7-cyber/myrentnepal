@@ -1,3 +1,4 @@
+import { supabase } from '../supabaseClient';
 /*
  * MYRENT List Property Page – "Nepali Terracotta & Ink" Design
  * Includes Rule A: Broker Filter checkbox
@@ -64,7 +65,22 @@ export default function ListProperty() {
       return;
     }
     setSubmitted(true);
-    toast.success("Listing submitted for verification!", {
+    toast.const { data, error } = await supabase
+  .from('Listing') // Note: Change to 'listings' if your table name has a lowercase "l"
+  .insert([
+    { 
+      title: title, // Make sure these match the variables holding your form data
+      price: Number(price), 
+      is_verified: false 
+    }
+  ]);
+
+if (error) {
+  console.error(error.message);
+  alert('Error uploading listing.');
+  return;
+}
+    success("Listing submitted for verification!", {
       description: "Our team will review your documents within 24-48 hours.",
     });
   };
