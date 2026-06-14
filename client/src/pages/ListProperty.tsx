@@ -59,29 +59,41 @@ export default function ListProperty() {
     }));
   };
 
-  const handleSubmit = async () => {
+   const handleSubmit = async () => {
     if (!form.broker_confirmed) {
       toast.error("You must confirm the broker-free pledge to list on MYRENT.");
       return;
     }
 
-    // 1. Send the form data to Supabase
-    const { data, error } = await supabase
-      .from('Listing') 
-      .insert([
-        { 
-          title: form.title, 
-          price: Number(form.price), 
-          is_verified: false 
-        }
-      ]);
+    try {
+      // 1. Send form data matching your object mapping structure
+      const { data, error } = await supabase
+        .from('Listing') // Case-sensitive match to your exact Supabase table
+        .insert([
+          { 
+            title: form.title, 
+            price: Number(form.price), 
+            is_verified: false 
+          }
+        ]);
 
-    // 2. Catch database errors
-    if (error) {
-      console.error("Supabase Upload Error:", error.message);
-      toast.error("Error uploading listing: " + error.message);
-      return;
+      if (error) {
+        console.error("Supabase Database Error:", error.message);
+        toast.error("Database submission failed: " + error.message);
+        return;
+      }
+
+      // 2. Clear state on success
+      setSubmitted(true);
+      toast.success("Listing submitted for verification!", {
+        description: "Our team will review your documents within 24-48 hours.",
+      });
+
+    } catch (err) {
+      console.error("Form Crash Protection:", err);
+      toast.error("An unexpected error occurred during submission.");
     }
+  };
 
     // 3. Mark as submitted if successful
     setSubmitted(true);
