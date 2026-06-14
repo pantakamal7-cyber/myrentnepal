@@ -3,14 +3,7 @@
   "compatibility_date": "2026-06-14",
   "assets": {
     "directory": "../dist/public",
-    "binding": "ASSETS"
-  },
-  "router": {
-    "routes": [
-      {
-        "route": "/*",
-        "script": "index.html"
-      }
-    ]
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
   }
 }
