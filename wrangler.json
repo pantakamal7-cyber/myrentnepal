@@ -1,0 +1,8 @@
+{
+  "name": "myrentnepal",
+  "compatibility_date": "2026-06-14",
+  "main": "dist/index.js",
+  "assets": {
+    "directory": "dist/public"
+  }
+}
