@@ -1,89 +1,251 @@
-{
-  "name": "myrent",
-  "version": "1.0.0",
-  "type": "module",
-  "license": "MIT",
-  "scripts": {
-    "dev": "vite --host",
-    "build": "cd client && vite build",
-    "start": "NODE_ENV=production node dist/index.js",
-    "preview": "vite preview --host",
-    "check": "tsc --noEmit",
-    "format": "prettier --write ."
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.43.0",
-    "@hookform/resolvers": "^5.2.2",
-    "@radix-ui/react-accordion": "^1.2.12",
-    "@radix-ui/react-alert-dialog": "^1.1.15",
-    "@radix-ui/react-aspect-ratio": "^1.1.7",
-    "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-checkbox": "^1.3.3",
-    "@radix-ui/react-collapsible": "^1.1.12",
-    "@radix-ui/react-context-menu": "^2.2.16",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-hover-card": "^1.1.15",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-menubar": "^1.1.16",
-    "@radix-ui/react-navigation-menu": "^1.2.14",
-    "@radix-ui/react-popover": "^1.1.15",
-    "@radix-ui/react-progress": "^1.1.7",
-    "@radix-ui/react-radio-group": "^1.3.8",
-    "@radix-ui/react-scroll-area": "^1.2.10",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-separator": "^1.1.7",
-    "@radix-ui/react-slider": "^1.3.6",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-switch": "^1.2.6",
-    "@radix-ui/react-tabs": "^1.1.13",
-    "@radix-ui/react-toggle": "^1.1.10",
-    "@radix-ui/react-toggle-group": "^1.1.11",
-    "@radix-ui/react-tooltip": "^1.2.8",
-    "axios": "^1.12.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "cmdk": "^1.1.1",
-    "embla-carousel-react": "^8.6.0",
-    "express": "^4.21.2",
-    "framer-motion": "^12.23.22",
-    "input-otp": "^1.4.2",
-    "lucide-react": "^0.453.0",
-    "nanoid": "^5.1.5",
-    "next-themes": "^0.4.6",
-    "react": "^19.2.1",
-    "react-day-picker": "^9.11.1",
-    "react-dom": "^19.2.1",
-    "react-hook-form": "^7.64.0",
-    "react-resizable-panels": "^3.0.6",
-    "recharts": "^2.15.2",
-    "sonner": "^2.0.7",
-    "streamdown": "^1.4.0",
-    "tailwind-merge": "^3.3.1",
-    "tailwindcss-animate": "^1.0.7",
-    "vaul": "^1.1.2",
-    "wouter": "^3.3.5",
-    "zod": "^4.1.12"
-  },
-  "devDependencies": {
-    "@tailwindcss/typography": "^0.5.15",
-    "@tailwindcss/vite": "^4.1.3",
-    "@types/express": "4.17.21",
-    "@types/google.maps": "^3.58.1",
-    "@types/node": "^24.7.0",
-    "@types/react": "^19.2.1",
-    "@types/react-dom": "^19.2.1",
-    "@vitejs/plugin-react": "^5.0.4",
-    "add": "^2.0.6",
-    "autoprefixer": "^10.4.20",
-    "esbuild": "^0.25.0",
-    "postcss": "^8.4.47",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^4.1.14",
-    "tsx": "^4.19.1",
-    "tw-animate-css": "^1.4.0",
-    "typescript": "5.6.3",
-    "vite": "^7.1.7",
-    "vitest": "^2.1.4"
-  }
-}
+/*
+ * MYRENT Listings Page – "Nepali Terracotta & Ink" Design
+ * Left-anchored filter sidebar + offset card grid with Live Supabase Connection
+ */
+import { useState, useMemo, useEffect } from "react";
+import { useSearch } from "wouter";
+import { Search, SlidersHorizontal, MapPin, ChevronDown, X, ShieldCheck, Filter } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import PropertyCard from "@/components/PropertyCard";
+import { KATHMANDU_LOCATIONS, PROPERTY_TYPES, type PropertyType } from "@/lib/data";
+import { supabase } from "@/lib/supabase"; 
+
+export default function Listings() {
+  const searchStr = useSearch();
+  const params = new URLSearchParams(searchStr);
+
+  const [query, setQuery] = useState(params.get("q") || "");
+  const [location, setLocation] = useState(params.get("location") || "");
+  const [propertyType, setPropertyType] = useState<PropertyType | "">(
+    (params.get("type") as PropertyType) || ""
+  );
+  const [minPrice, setMinPrice] = useState(0);
+  const [maxPrice, setMaxPrice] = useState(100000);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [noBrokerOnly, setNoBrokerOnly] = useState(false);
+  const [waterOnly, setWaterOnly] = useState(false);
+  const [parkingOnly, setParkingOnly] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // State arrays to manage real database records
+  const [listings, setListings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data dynamically from your Supabase 'Listing' table
+  useEffect(() => {
+    async function fetchLiveListings() {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from("Listing")
+          .select("*");
+
+        if (error) throw error;
+        if (data) setListings(data);
+      } catch (err) {
+        console.error("Database resolution error:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchLiveListings();
+  }, []);
+
+  const filtered = useMemo(() => {
+    return listings.filter((l) => {
+      const title = l.title || "";
+      const locStr = l.location || "";
+      const desc = l.description || "";
+      const price = Number(l.price || l.price_npr || 0);
+      const isVerified = l.is_verified === true || l.is_verified === "TRUE";
+
+      if (l.availability_status && l.availability_status !== "Available") return false;
+      
+      if (query && 
+          !title.toLowerCase().includes(query.toLowerCase()) &&
+          !locStr.toLowerCase().includes(query.toLowerCase()) &&
+          !desc.toLowerCase().includes(query.toLowerCase())) return false;
+          
+      if (location && locStr !== location) return false;
+      if (propertyType && l.property_type !== propertyType) return false;
+      if (price < minPrice || price > maxPrice) return false;
+      if (verifiedOnly && !isVerified) return false;
+      if (noBrokerOnly && !l.is_broker_free) return false;
+      if (waterOnly && !l.water_availability) return false;
+      if (parkingOnly && !l.parking_bike && !l.parking_car) return false;
+      return true;
+    });
+  }, [listings, query, location, propertyType, minPrice, maxPrice, verifiedOnly, noBrokerOnly, waterOnly, parkingOnly]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setLocation("");
+    setPropertyType("");
+    setMinPrice(0);
+    setMaxPrice(100000);
+    setVerifiedOnly(false);
+    setNoBrokerOnly(false);
+    setWaterOnly(false);
+    setParkingOnly(false);
+  };
+
+  const hasActiveFilters = query || location || propertyType || minPrice > 0 || maxPrice < 100000 || verifiedOnly || noBrokerOnly || waterOnly || parkingOnly;
+
+  const FilterPanel = () => (
+    <div className="space-y-6" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-[#1A1208] flex items-center gap-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <SlidersHorizontal size={16} className="text-[#C4622D]" />
+          Filters
+        </h3>
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilters}
+            className="text-xs text-[#C4622D] hover:underline flex items-center gap-1"
+          >
+            <X size={12} /> Clear All
+          </button>
+        )}
+      </div>
+
+      {/* Location Selector */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 block">
+          Location
+        </label>
+        <div className="relative">
+          <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4622D]" />
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full pl-8 pr-8 py-2.5 text-sm bg-white text-[#1A1208] border border-border appearance-none outline-none focus:border-[#C4622D] transition-colors"
+            style={{ borderRadius: "2px" }}
+          >
+            <option value="">All Locations</option>
+            {KATHMANDU_LOCATIONS.map((loc) => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
+          </select>
+          <ChevronDown size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Property Type Grid */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 block">
+          Property Type
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+          {PROPERTY_TYPES.map((t) => (
+            <button
+              key={t}
+              onClick={() => setPropertyType(propertyType === t ? "" : t)}
+              className={`text-xs py-2 px-2 border font-medium transition-all text-center ${
+                propertyType === t
+                  ? "bg-[#C4622D] text-white border-[#C4622D]"
+                  : "bg-white text-[#1A1208] border-border hover:border-[#C4622D] hover:text-[#C4622D]"
+              }`}
+              style={{ borderRadius: "2px" }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Price Trackers */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2 block">
+          Price Range (NPR/month)
+        </label>
+        <div className="space-y-3">
+          <div>
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>Min: Rs. {minPrice.toLocaleString()}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100000}
+              step={1000}
+              value={minPrice}
+              onChange={(e) => setMinPrice(Number(e.target.value))}
+              className="w-full accent-[#C4622D]"
+            />
+          </div>
+          <div>
+            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+              <span>Max: {maxPrice >= 100000 ? "Rs. 1,00,000+" : `Rs. ${maxPrice.toLocaleString()}`}</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={100000}
+              step={1000}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-full accent-[#C4622D]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Checkboxes */}
+      <div>
+        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 block">
+          Must Have
+        </label>
+        <div className="space-y-2.5">
+          {[
+            { label: "Verified Listings Only", value: verifiedOnly, set: setVerifiedOnly },
+            { label: "No Broker Fee", value: noBrokerOnly, set: setNoBrokerOnly },
+            { label: "Water Available", value: waterOnly, set: setWaterOnly },
+            { label: "Parking Available", value: parkingOnly, set: setParkingOnly },
+          ].map((item) => (
+            <label key={item.label} className="flex items-center gap-2.5 cursor-pointer group" onClick={() => item.set(!item.value)}>
+              <div
+                className={`w-4 h-4 border-2 flex items-center justify-center transition-all shrink-0 ${
+                  item.value
+                    ? "bg-[#C4622D] border-[#C4622D]"
+                    : "border-border group-hover:border-[#C4622D]"
+                }`}
+                style={{ borderRadius: "2px" }}
+              >
+                {item.value && <span className="text-white text-xs leading-none">✓</span>}
+              </div>
+              <span className="text-sm text-[#1A1208]">{item.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      <Navbar />
+
+      <div className="bg-[#1A1208] text-[#F5EFE0] py-8">
+        <div className="container px-4">
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold tracking-tight mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Browse Listings
+            </h1>
+            <p className="text-sm text-[#F5EFE0]/80">
+              Find properties in Kathmandu verified directly from landlords.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="container px-4 flex-1 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="hidden lg:block lg:col-span-1 border-r pr-6 border-border">
+            <FilterPanel />
+          </div>
+
+          <div className="lg:col-span-3 space-y-6">
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
