@@ -1,7 +1,7 @@
 {
   "compatibility_date": "2026-06-14",
   "assets": {
-    "directory": "./dist/public",
+    "directory": "../dist/public",
     "not_found_handling": "single-page-application"
   }
 }
