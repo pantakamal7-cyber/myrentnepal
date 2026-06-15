@@ -3,6 +3,6 @@
   "compatibility_date": "2026-06-14",
   "main": "dist/index.js",
   "assets": {
-    "directory": "./client/dist/public"
+    "directory": "./dist/public"
   }
 }
