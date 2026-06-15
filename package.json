@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build && echo '/* /index.html 200' > ../dist/public/_redirects && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+   "build": "vite build && echo '/* /index.html 200' > dist/public/_redirects && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+   "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "format": "prettier --write ."
