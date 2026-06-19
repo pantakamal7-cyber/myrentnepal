@@ -154,16 +154,23 @@ export default function Home() {
                 </div>
 
                 {/* Quick filters */}
-                <div className="flex flex-wrap gap-2">
-                  {["Under Rs. 10,000", "Verified Only", "No Broker", "Parking Available"].map((tag) => (
+                               <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Under Rs. 10,000", url: "/listings?maxPrice=10000" },
+                    { label: "Verified Only", url: "/listings?verified=true" },
+                    { label: "No Broker", url: "/listings?noBroker=true" },
+                    { label: "Parking Available", url: "/listings?parking=true" }
+                  ].map((tag) => (
                     <button
-                      key={tag}
+                      key={tag.label}
                       type="button"
-                      onClick={() => navigate("/listings")}
-                      className="text-xs px-3 py-1 border border-border text-muted-foreground hover:border-[#C4622D] hover:text-[#C4622D] transition-colors"
+                      onClick={() => {
+                        window.location.href = tag.url;
+                      }}
+                      className="text-xs px-3 py-1 border border-border bg-white text-muted-foreground hover:border-[#C4622D] hover:text-[#C4622D] transition-colors"
                       style={{ borderRadius: "2px" }}
                     >
-                      {tag}
+                      {tag.label}
                     </button>
                   ))}
                 </div>
