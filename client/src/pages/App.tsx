@@ -3,10 +3,11 @@ import Home from "./pages/Home";
 import Listings from "./pages/Listings";
 import Terms from "./pages/Terms"; 
 import Privacy from "./pages/Privacy"; 
-import AntiFraud from "./pages/AntiFraud";
-import ReportListing from "./pages/ReportListing";
-import Verification from "./pages/Verification";
-import FAQ from "./pages/FAQ";
+import AntiFraud from "../components/pages/AntiFraud";
+import ReportListing from "../components/pages/ReportListing";
+import Verification from "../components/pages/Verification";
+import FAQ from "../components/pages/FAQ";
+
 import NotFound from "./pages/NotFound";
 
 export default function App() {
