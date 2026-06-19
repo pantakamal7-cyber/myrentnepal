@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "node:path";
 
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [
     react(), 
     tailwindcss()
@@ -17,9 +17,14 @@ export default defineConfig({
     },
   },
   build: {
-    // Forces Vite to ignore remote postcss layout warnings and safely compile the dist folder
-    cssMinify: "esbuild",
     outDir: "dist",
     emptyOutDir: true,
+  },
+  // 🛡️ Forces local environment proxies to match server configurations perfectly
+  server: {
+    historyApiFallback: true
+  },
+  preview: {
+    historyApiFallback: true
   }
 });
