@@ -5,12 +5,10 @@ import path from "node:path";
 
 export default defineConfig({
   base: "./",
-  
   plugins: [
     react(), 
     tailwindcss()
   ],
-  
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
@@ -18,8 +16,9 @@ export default defineConfig({
       "@assets": path.resolve(import.meta.dirname, "../attached_assets"),
     },
   },
-  
   build: {
+    // Forces Vite to ignore remote postcss layout warnings and safely compile the dist folder
+    cssMinify: "esbuild",
     outDir: "dist",
     emptyOutDir: true,
   }
