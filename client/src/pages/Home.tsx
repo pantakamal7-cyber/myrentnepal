@@ -22,13 +22,21 @@ export default function Home() {
   const [searchType, setSearchType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
+    // 🚀 Force clean hard-redirect parameters to clear sticky React state containers
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchLocation) params.set("location", searchLocation);
     if (searchType) params.set("type", searchType);
     if (searchQuery) params.set("q", searchQuery);
-    navigate(`/listings?${params.toString()}`);
+    
+    // Using window.location forces the browser to pull down a fresh view with your keys
+    window.location.href = `/listings?${params.toString()}`;
+  };
+
+  // 🎯 Quick-click function for your Popular Area cards layout lower down
+  const handleQuickAreaClick = (areaName: string) => {
+    window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
   const verifiedListings = MOCK_LISTINGS.filter((l) => l.is_verified && l.availability_status === "Available");
