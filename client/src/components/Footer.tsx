@@ -1,7 +1,7 @@
 /*
  * MYRENT Footer – Terracotta & Ink design
+ * Fully Optimized for Serverless Navigation Real-Time Refreshing
  */
-import { Link } from "wouter";
 import { ShieldCheck, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Footer() {
@@ -41,13 +41,13 @@ export default function Footer() {
                 { href: "/login", label: "Landlord Login" },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <a
                     href={link.href}
                     className="text-sm text-[#F5EFE0]/60 hover:text-[#C4622D] transition-colors"
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -61,13 +61,13 @@ export default function Footer() {
             <ul className="space-y-2">
               {["New Baneshwor", "Jhamsikhel", "Lazimpat", "Thamel", "Boudha", "Koteshwor"].map((area) => (
                 <li key={area}>
-                  <Link
+                  <a
                     href={`/listings?location=${encodeURIComponent(area)}`}
                     className="text-sm text-[#F5EFE0]/60 hover:text-[#C4622D] transition-colors"
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
                     {area}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -82,17 +82,17 @@ export default function Footer() {
               {[
                 { href: "/anti-fraud", label: "Anti-Fraud Policy" },
                 { href: "/report", label: "Report a Listing" },
-                { href: "/verify", label: "Verification Process" },
+                { href: "/verification", label: "Verification Process" }, // 👈 Fixed path from /verify to /verification
                 { href: "/faq", label: "FAQ" },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link
+                  <a
                     href={link.href}
                     className="text-sm text-[#F5EFE0]/60 hover:text-[#C4622D] transition-colors"
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -119,8 +119,8 @@ export default function Footer() {
             © 2026 MYRENT Nepal. All rights reserved. Registered in Kathmandu, Nepal.
           </p>
           <div className="flex items-center gap-4 text-xs text-[#F5EFE0]/40" style={{ fontFamily: "'DM Sans', sans-serif" }}>
-            <Link href="/privacy" className="hover:text-[#C4622D] transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-[#C4622D] transition-colors">Terms of Use</Link>
+            <a href="/privacy" className="hover:text-[#C4622D] transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-[#C4622D] transition-colors">Terms of Use</a>
           </div>
         </div>
       </div>
