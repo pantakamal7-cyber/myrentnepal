@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 // 🛡️ Explicit Layout Wrappers to Force Vite to Keep Your Pages Intact during Tree Shaking
-function AntiFraudPage() {
+function AntiFraud() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F5EFE0]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar />
@@ -45,7 +45,7 @@ function FAQ() {
   );
 }
 
-function ReportListingPage() {
+function ReportListing() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F5EFE0]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar />
@@ -84,13 +84,13 @@ export default function App() {
 
       {/* Trust & Safety Path Registrations */}
       <Route path="/anti-fraud" component={AntiFraud} />
-      <Route path="/anti-fraud-policy" component={AntiFraud} />
+      <Route path="/Anti-Fraud-Policy" component={AntiFraud} />
       <Route path="/report" component={ReportListing} />
       <Route path="/report-listing" component={ReportListing} />
       <Route path="/verification" component={Verification} />
       <Route path="/verification-process" component={Verification} />
       <Route path="/faq" component={FAQ} />
-      <Route path="/faqs" component={FAQ />
+      <Route path="/faqs" component={FAQ} />
 
       {/* Fallback 404 Route Catch */}
       <Route component={NotFound} />
