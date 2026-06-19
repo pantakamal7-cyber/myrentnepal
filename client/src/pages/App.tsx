@@ -27,7 +27,7 @@ function AntiFraudPage() {
   );
 }
 
-function FAQPage() {
+function FAQ() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F5EFE0]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <Navbar />
