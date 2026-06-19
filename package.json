@@ -5,7 +5,7 @@
   "license": "MIT",
    "scripts": {
     "dev": "vite --host",
-"build": "npm run build --prefix client",
+    "build": "if [ -d \"client\" ]; then cd client && npm install --legacy-peer-deps && npm run build; else npm install --legacy-peer-deps && npm run build; fi",
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
