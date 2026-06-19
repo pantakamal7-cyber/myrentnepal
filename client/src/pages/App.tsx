@@ -1,5 +1,4 @@
-import { Switch, Route, Router } from "wouter";
-import { memoryLocation } from "wouter/memory-location";
+import { Switch, Route } from "wouter";
 import Home from "./Home";
 import Listings from "./Listings";
 import Terms from "./Terms"; 
@@ -10,44 +9,28 @@ import Verification from "./Verification";
 import FAQ from "./FAQ";
 import NotFound from "./NotFound";
 
-// 🚀 Professional Location Parser: Guarantees your sub-pages read URLs correctly on serverless platforms
-const useDirectLocation = () => {
-  const [path, setPath] = memoryLocation({
-    initialPath: window.location.pathname
-  });
-  return [path, setPath] as [string, (p: string) => void];
-};
-
 export default function App() {
   return (
-    <Router hook={useDirectLocation}>
-      <Switch>
-        {/* Core Application Routes */}
-        <Route path="/" component={Home} />
-        <Route path="/listings"><Listings /></Route>
-        <Route path="/terms" component={Terms} /> 
-        <Route path="/privacy" component={Privacy} /> 
+    <Switch>
+      {/* Core Application Routes */}
+      <Route path="/" component={Home} />
+      <Route path="/listings"><Listings /></Route>
+      <Route path="/terms" component={Terms} /> 
+      <Route path="/privacy" component={Privacy} /> 
 
-        {/* Trust & Safety Lowercase Path System Mappings */}
-        <Route path="/anti-fraud" component={AntiFraud} />
-        <Route path="/anti-fraud-policy" component={AntiFraud} />
+      {/* Trust & Safety Path Registrations */}
+      <Route path="/anti-fraud" component={AntiFraud} />
+      <Route path="/anti-fraud-policy" component={AntiFraud} />
+      <Route path="/report" component={ReportListing} />
+      <Route path="/report-listing" component={ReportListing} />
+      <Route path="/verification" component={Verification} />
+      <Route path="/verification-process" component={Verification} />
+      <Route path="/faq" component={FAQ} />
+      <Route path="/faqs" component={FAQ} />
 
-        {/* Report Listing Path Mappings */}
-        <Route path="/report" component={ReportListing} />
-        <Route path="/report-listing" component={ReportListing} />
-        <Route path="/report-a-listing" component={ReportListing} />
-
-        {/* Verification Process Path Mappings */}
-        <Route path="/verification" component={Verification} />
-        <Route path="/verification-process" component={Verification} />
-
-        {/* FAQ Path Mappings */}
-        <Route path="/faq" component={FAQ} />
-        <Route path="/faqs" component={FAQ} />
-
-        {/* Fallback 404 Route Catch */}
-        <Route component={NotFound} />
-      </Switch>
-    </Router>
+      {/* Fallback 404 Route Catch */}
+      <Route component={NotFound} />
+    </Switch>
   );
 }
+
