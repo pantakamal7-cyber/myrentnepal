@@ -5,12 +5,13 @@
   "license": "MIT",
    "scripts": {
     "dev": "vite --host",
-    "build": "cd client && npm install --legacy-peer-deps && npm run build",
+    "build": "npm run build --prefix client",
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "format": "prettier --write ."
   },
+
   "dependencies": {
     "@supabase/supabase-js": "^2.43.0",
     "@hookform/resolvers": "^5.2.2",
