@@ -1,14 +1,27 @@
-// ... existing imports
-import Terms from "./pages/Terms"; // New import
-import Privacy from "./pages/Privacy"; // New import
+import { Switch, Route } from "wouter";
+import Home from "./pages/Home";
+import Listings from "./pages/Listings";
+import Terms from "./pages/Terms"; 
+import Privacy from "./pages/Privacy"; 
+import NotFound from "./pages/NotFound";
 
-function Router() {
+export default function App() {
   return (
     <Switch>
-      {/* ... existing routes */}
-      <Route path="/terms" component={Terms} /> {/* Add route */}
-      <Route path="/privacy" component={Privacy} /> {/* Add route */}
-      {/* ... existing fallback */}
+      {/* Home Route */}
+      <Route path="/" component={Home} />
+
+      {/* Listings Route - Changed to a wrapper component to pass query search parameters smoothly */}
+      <Route path="/listings">
+        <Listings />
+      </Route>
+
+      {/* Terms and Privacy Legal Routes */}
+      <Route path="/terms" component={Terms} /> 
+      <Route path="/privacy" component={Privacy} /> 
+
+      {/* Fallback 404 Route */}
+      <Route component={NotFound} />
     </Switch>
   );
 }
