@@ -117,7 +117,7 @@ export default function Listings() {
           </div>
         </div>
       </div>
-      <div className="container px-4 flex-1 py-8">
+           <div className="container px-4 flex-1 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="hidden lg:block lg:col-span-1 border-r pr-6 border-border"><FilterPanel /></div>
           <div className="lg:col-span-3 space-y-6">
@@ -132,11 +132,19 @@ export default function Listings() {
             {filtered.length === 0 ? (
               <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>
                 <p className="text-muted-foreground text-sm">No listings match your filter paths.</p>
-                <button onClick={clearFilters} className="text-xs font-bold text-[#C4622D] uppercase tracking-wider underline">Clear All Filters</button>
+                <button 
+                  onClick={() => {
+                    clearFilters();
+                    window.history.pushState({}, "", window.location.pathname);
+                  }} 
+                  className="text-xs font-bold text-[#C4622D] uppercase tracking-wider underline"
+                >
+                  Clear All Filters
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filtered.map((item) => <PropertyCard key={item.id} property={item} />)}
+                {filtered.map((item) => <PropertyCard key={item.id || item.property_id} property={item} />)}
               </div>
             )}
           </div>
@@ -155,4 +163,5 @@ export default function Listings() {
     </div>
   );
 }
+
 
