@@ -12,24 +12,31 @@ import NotFound from "./pages/NotFound";
 export default function App() {
   return (
     <Switch>
+      {/* Core Pages */}
       <Route path="/" component={Home} />
-      
-      <Route path="/listings">
-        <Listings />
-      </Route>
-
+      <Route path="/listings"><Listings /></Route>
       <Route path="/terms" component={Terms} /> 
       <Route path="/privacy" component={Privacy} /> 
 
-      {/* 🛡️ Trust & Safety Route Mappings */}
+      {/* Anti-Fraud Route Variations */}
       <Route path="/anti-fraud" component={AntiFraud} />
+      <Route path="/anti-fraud-policy" component={AntiFraud} />
+
+      {/* Report Listing Route Variations */}
       <Route path="/report" component={ReportListing} />
+      <Route path="/report-listing" component={ReportListing} />
+      <Route path="/report-a-listing" component={ReportListing} />
+
+      {/* Verification Process Route Variations */}
       <Route path="/verification" component={Verification} />
+      <Route path="/verification-process" component={Verification} />
+
+      {/* FAQ Route Variations */}
       <Route path="/faq" component={FAQ} />
+      <Route path="/faqs" component={FAQ} />
 
       {/* Fallback 404 Route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
-
