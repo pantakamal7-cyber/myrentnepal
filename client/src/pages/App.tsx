@@ -83,14 +83,14 @@ export default function App() {
       <Route path="/privacy" component={Privacy} /> 
 
       {/* Trust & Safety Path Registrations */}
-      <Route path="/anti-fraud" component={AntiFraudPage} />
-      <Route path="/anti-fraud-policy" component={AntiFraudPage} />
-      <Route path="/report" component={ReportListingPage} />
-      <Route path="/report-listing" component={ReportListingPage} />
-      <Route path="/verification" component={VerificationPage} />
-      <Route path="/verification-process" component={VerificationPage} />
-      <Route path="/faq" component={FAQPage} />
-      <Route path="/faqs" component={FAQPage} />
+      <Route path="/anti-fraud" component={AntiFraud} />
+      <Route path="/anti-fraud-policy" component={AntiFraud} />
+      <Route path="/report" component={ReportListing} />
+      <Route path="/report-listing" component={ReportListing} />
+      <Route path="/verification" component={Verification} />
+      <Route path="/verification-process" component={Verification} />
+      <Route path="/faq" component={FAQ} />
+      <Route path="/faqs" component={FAQ />
 
       {/* Fallback 404 Route Catch */}
       <Route component={NotFound} />
