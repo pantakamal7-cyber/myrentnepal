@@ -5,7 +5,7 @@
   "license": "MIT",
    "scripts": {
     "dev": "vite --host",
-    "build": "npm run build --prefix client",
+    "build": "bash build.sh",
     "start": "NODE_ENV=production node dist/index.js",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
