@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import FilterPanel from "@/components/FilterPanel";
 import { MOCK_LISTINGS, type PropertyType } from "@/lib/data";
+import { supabase } from "../supabaseClient";
 
 export default function Listings() {
   const searchStr = useSearch();
@@ -22,6 +23,10 @@ export default function Listings() {
   const [parkingOnly, setParkingOnly] = useState(getParam("parking") === "true");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // live listings state (fallback to MOCK_LISTINGS)
+  const [listings, setListings] = useState<any[]>(MOCK_LISTINGS);
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     setLocation(p.get("location") || ""); setPropertyType(p.get("type") as PropertyType || "");
@@ -30,6 +35,34 @@ export default function Listings() {
     setParkingOnly(p.get("parking") === "true");
   }, [searchStr]);
 
+  useEffect(() => {
+    // load live listings from Supabase
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('Listing')
+          .select('*')
+          .order('date_listed', { ascending: false })
+          .limit(200);
+
+        if (error) {
+          console.error('Supabase fetch error', error);
+          // keep MOCK_LISTINGS as fallback
+        } else if (!cancelled && Array.isArray(data)) {
+          setListings(data as any[]);
+        }
+      } catch (e) {
+        console.error('Unexpected error fetching listings', e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
   const updateUrlParams = (k: string, v: any) => {
     const p = new URLSearchParams(window.location.search);
     if (v) p.set(k, String(v)); else p.delete(k);
@@ -37,19 +70,20 @@ export default function Listings() {
   };
 
   const filtered = useMemo(() => {
-    return MOCK_LISTINGS.filter((l) => {
+    return (listings || MOCK_LISTINGS).filter((l: any) => {
       if (l.availability_status !== "Available") return false;
-      if (query && !l.title.toLowerCase().includes(query.toLowerCase()) && !l.location.toLowerCase().includes(query.toLowerCase()) && !l.description.toLowerCase().includes(query.toLowerCase())) return false;
+      if (query && !((l.title||"").toLowerCase().includes(query.toLowerCase()) || (l.location||"").toLowerCase().includes(query.toLowerCase()) || (l.description||"").toLowerCase().includes(query.toLowerCase()))) return false;
       if (location && l.location !== location) return false;
       if (propertyType && l.property_type !== propertyType) return false;
-      if (l.price_npr < minPrice || l.price_npr > maxPrice) return false;
+      const price = Number(l.price_npr ?? l.price ?? 0);
+      if (price < minPrice || price > maxPrice) return false;
       if (verifiedOnly && !l.is_verified) return false;
       if (noBrokerOnly && !l.is_broker_free) return false;
       if (waterOnly && !l.water_availability) return false;
       if (parkingOnly && !l.parking_bike && !l.parking_car) return false;
       return true;
     });
-  }, [query, location, propertyType, minPrice, maxPrice, verifiedOnly, noBrokerOnly, waterOnly, parkingOnly]);
+  }, [listings, query, location, propertyType, minPrice, maxPrice, verifiedOnly, noBrokerOnly, waterOnly, parkingOnly]);
 
   const clearFilters = () => {
     setQuery(""); setLocation(""); setPropertyType(""); setMinPrice(0); setMaxPrice(100000);
@@ -57,7 +91,7 @@ export default function Listings() {
     window.history.pushState({}, "", window.location.pathname);
   };
 
-  const hasActiveFilters = query || location || propertyType || minPrice > 0 || maxPrice < 100000 || verifiedOnly || noBrokerOnly || waterOnly || parkingOnly;
+  const hasActiveFilters = Boolean(query || location || propertyType || minPrice > 0 || maxPrice < 100000 || verifiedOnly || noBrokerOnly || waterOnly || parkingOnly);
 
   const panelProps = {
     location, setLocation, propertyType, setPropertyType, minPrice, setMinPrice, maxPrice, setMaxPrice,
@@ -87,7 +121,7 @@ export default function Listings() {
               </div>
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden px-4 border border-border flex items-center gap-2 text-sm bg-white" style={{ borderRadius: "2px" }}><Filter size={14} /> Filter</button>
             </div>
-            <div className="text-sm text-muted-foreground">{`${filtered.length} properties available`}</div>
+            <div className="text-sm text-muted-foreground">{loading ? 'Loading listings...' : `${filtered.length} properties available`}</div>
             {filtered.length === 0 ? (
               <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>
                 <p className="text-muted-foreground text-sm">No listings match your filter paths.</p>
@@ -95,7 +129,7 @@ export default function Listings() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filtered.map((item, idx) => <PropertyCard key={item.id || idx} property={item} index={idx} />)}
+                {filtered.map((item, idx) => <PropertyCard key={item.id || item.property_id || idx} property={item} index={idx} />)}
               </div>
             )}
           </div>
@@ -114,4 +148,3 @@ export default function Listings() {
     </div>
   );
 }
-
