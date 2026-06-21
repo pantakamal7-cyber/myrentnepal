@@ -66,43 +66,18 @@ export default function ListProperty() {
     }
 
     try {
-      // Attach authenticated user id if available
-      let landlord_id: string | null = null;
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        landlord_id = userData?.user?.id ?? null;
-      } catch (e) {
-        // auth may not be configured for your project; we continue without landlord_id
-        console.warn('Could not get authenticated user', e);
-      }
-
-      // Build payload matching the Listing table schema
+      // Build payload with only the fields that exist in your Listing table:
+      // id (auto), created_at (auto), title, price, is_verified, location, Type, Date_exipre
       const payload = {
-        landlord_id,
-        landlord_name: form.full_name || null,
-        landlord_phone: form.phone || null,
         title: form.title || null,
-        property_type: form.property_type || null,
-        location: form.location || null,
-        exact_address: form.exact_address || null,
-        price_npr: form.price ? Number(form.price) : null,
-        security_deposit_npr: form.deposit ? Number(form.deposit) : null,
-        bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
-        bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
-        area_sqft: form.area ? Number(form.area) : null,
-        description: form.description || null,
-        amenities: form.amenities || [],
-        images: [],
+        price: form.price ? Number(form.price) : null,
         is_verified: false,
-        is_broker_free: !!form.broker_confirmed,
-        water_availability: !!form.water,
-        parking_bike: !!form.parking_bike,
-        parking_car: !!form.parking_car,
-        electricity_submeter: !!form.submeter,
-        availability_status: 'Available',
-        date_listed: new Date().toISOString(),
-        expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+        location: form.location || null,
+        Type: form.property_type || null,
+        Date_exipre: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       };
+
+      console.log('Supabase insert payload:', payload);
 
       // Insert into the Listing table and return the inserted row for verification
       const { data, error } = await supabase
@@ -567,10 +542,10 @@ export default function ListProperty() {
                     { value: "lalpurja", label: "Lalpurja / Land Ownership Certificate", desc: "Official land registration document" },
                     { value: "utilities", label: "Ward Utilities Bill", desc: "Recent electricity or water bill in your name" },
                   ].map((doc) => (
-                    <label key={doc.value} className={`flex items-start gap-3 p-4 border cursor-pointer transition-all ${form.doc_type === doc.value ? "border-[#C4622D] bg-[#C4622D]/5" : "border-[...`}>
+                    <label key={doc.value} className={`flex items-start gap-3 p-4 border cursor-pointer transition-all ${form.doc_type === doc.value ? "border-[#C4622D] bg-[#C4622D]/5" : "border-border"}`} style={{ borderRadius: "2px" }}>
                       <div
                         onClick={() => update("doc_type", doc.value)}
-                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 ${form.doc_type === doc.value ? "bg-[#C4622D] border-[#C4622D]" : "border-bord...`}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 ${form.doc_type === doc.value ? "bg-[#C4622D] border-[#C4622D]" : "border-border"}`}
                         style={{ borderRadius: "50%" }}
                       >
                         {form.doc_type === doc.value && <span className="w-2 h-2 bg-white rounded-full" />}
@@ -603,7 +578,7 @@ export default function ListProperty() {
                 <div>
                   <p className="text-sm font-semibold text-amber-800">14-Day Auto-Expiry (Rule B)</p>
                   <p className="text-xs text-amber-700 mt-0.5">
-                    Your listing will automatically be hidden from search after 14 days. You'll receive an SMS asking you to click "Still Available" to re-activate it. This prevents ghost listing...
+                    Your listing will automatically be hidden from search after 14 days. You'll receive an SMS asking you to click "Still Available" to re-activate it. This prevents ghost listings.
                   </p>
                 </div>
               </div>
@@ -628,7 +603,7 @@ export default function ListProperty() {
                       Broker-Free Pledge (Required — Rule A)
                     </p>
                     <p className="text-sm text-[#1A1208] leading-relaxed">
-                      <strong>"I confirm that I am the owner or a direct family member of this property. I will not charge any broker fees to the tenant. I understand that if 3 unique users report..."</strong>
+                      <strong>"I confirm that I am the owner or a direct family member of this property. I will not charge any broker fees to the tenant. I understand that if 3 unique users report that I charged broker fees, my account will be suspended."</strong>
                     </p>
                     {!form.broker_confirmed && (
                       <p className="text-xs text-[#C4622D] mt-2 flex items-center gap-1">
