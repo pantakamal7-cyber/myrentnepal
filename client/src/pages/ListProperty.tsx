@@ -66,32 +66,66 @@ export default function ListProperty() {
     }
 
     try {
-      // 1. Send form data matching your object mapping structure cleanly
+      // Attach authenticated user id if available
+      let landlord_id: string | null = null;
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        landlord_id = userData?.user?.id ?? null;
+      } catch (e) {
+        // auth may not be configured for your project; we continue without landlord_id
+        console.warn('Could not get authenticated user', e);
+      }
+
+      // Build payload matching the Listing table schema
+      const payload = {
+        landlord_id,
+        landlord_name: form.full_name || null,
+        landlord_phone: form.phone || null,
+        title: form.title || null,
+        property_type: form.property_type || null,
+        location: form.location || null,
+        exact_address: form.exact_address || null,
+        price_npr: form.price ? Number(form.price) : null,
+        security_deposit_npr: form.deposit ? Number(form.deposit) : null,
+        bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
+        bathrooms: form.bathrooms ? Number(form.bathrooms) : null,
+        area_sqft: form.area ? Number(form.area) : null,
+        description: form.description || null,
+        amenities: form.amenities || [],
+        images: [],
+        is_verified: false,
+        is_broker_free: !!form.broker_confirmed,
+        water_availability: !!form.water,
+        parking_bike: !!form.parking_bike,
+        parking_car: !!form.parking_car,
+        electricity_submeter: !!form.submeter,
+        availability_status: 'Available',
+        date_listed: new Date().toISOString(),
+        expiry_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+
+      // Insert into the Listing table and return the inserted row for verification
       const { data, error } = await supabase
-        .from('Listing') 
-        .insert([
-          { 
-            title: form.title, 
-            price: Number(form.price), 
-            is_verified: false 
-          }
-        ]);
+        .from('Listing')
+        .insert([payload])
+        .select();
+
+      console.log('Supabase insert result', { data, error });
 
       if (error) {
-        console.error("Supabase Database Error:", error.message);
-        toast.error("Database submission failed: " + error.message);
+        console.error('Supabase Database Error:', error);
+        toast.error('Database submission failed: ' + error.message);
         return;
       }
 
-      // 2. Transition user to the success screen
       setSubmitted(true);
-      toast.success("Listing submitted for verification!", {
-        description: "Our team will review your documents within 24-48 hours.",
+      toast.success('Listing submitted for verification!', {
+        description: 'Our team will review your documents within 24-48 hours.',
       });
 
     } catch (err) {
-      console.error("Form Crash Protection:", err);
-      toast.error("An unexpected error occurred during submission.");
+      console.error('Form Crash Protection:', err);
+      toast.error('An unexpected error occurred during submission.');
     }
   };
 
@@ -465,7 +499,7 @@ export default function ListProperty() {
                   Amenities (select all that apply)
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {["WiFi", "Furnished", "Semi-Furnished", "Kitchen", "Balcony", "Rooftop", "Garden", "Lift/Elevator", "Security Guard", "CCTV", "Generator", "Solar", "Washing Machine", "AC", "Heater"].map((a) => (
+                  {["WiFi", "Furnished", "Semi-Furnished", "Kitchen", "Balcony", "Rooftop", "Garden", "Lift/Elevator", "Security Guard", "CCTV", "Generator", "Solar", "Washing Machine", "AC"].map((a) => (
                     <button
                       key={a}
                       onClick={() => toggleAmenity(a)}
@@ -533,10 +567,10 @@ export default function ListProperty() {
                     { value: "lalpurja", label: "Lalpurja / Land Ownership Certificate", desc: "Official land registration document" },
                     { value: "utilities", label: "Ward Utilities Bill", desc: "Recent electricity or water bill in your name" },
                   ].map((doc) => (
-                    <label key={doc.value} className={`flex items-start gap-3 p-4 border cursor-pointer transition-all ${form.doc_type === doc.value ? "border-[#C4622D] bg-[#C4622D]/5" : "border-border hover:border-[#C4622D]/50"}`} style={{ borderRadius: "2px" }}>
+                    <label key={doc.value} className={`flex items-start gap-3 p-4 border cursor-pointer transition-all ${form.doc_type === doc.value ? "border-[#C4622D] bg-[#C4622D]/5" : "border-[...`}>
                       <div
                         onClick={() => update("doc_type", doc.value)}
-                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 ${form.doc_type === doc.value ? "bg-[#C4622D] border-[#C4622D]" : "border-border"}`}
+                        className={`w-5 h-5 border-2 flex items-center justify-center transition-all shrink-0 mt-0.5 ${form.doc_type === doc.value ? "bg-[#C4622D] border-[#C4622D]" : "border-bord...`}
                         style={{ borderRadius: "50%" }}
                       >
                         {form.doc_type === doc.value && <span className="w-2 h-2 bg-white rounded-full" />}
@@ -569,7 +603,7 @@ export default function ListProperty() {
                 <div>
                   <p className="text-sm font-semibold text-amber-800">14-Day Auto-Expiry (Rule B)</p>
                   <p className="text-xs text-amber-700 mt-0.5">
-                    Your listing will automatically be hidden from search after 14 days. You'll receive an SMS asking you to click "Still Available" to re-activate it. This prevents ghost listings of already-rented properties.
+                    Your listing will automatically be hidden from search after 14 days. You'll receive an SMS asking you to click "Still Available" to re-activate it. This prevents ghost listing...
                   </p>
                 </div>
               </div>
@@ -594,7 +628,7 @@ export default function ListProperty() {
                       Broker-Free Pledge (Required — Rule A)
                     </p>
                     <p className="text-sm text-[#1A1208] leading-relaxed">
-                      <strong>"I confirm that I am the owner or a direct family member of this property. I will not charge any broker fees to the tenant. I understand that if 3 unique users report otherwise, my account will be automatically suspended."</strong>
+                      <strong>"I confirm that I am the owner or a direct family member of this property. I will not charge any broker fees to the tenant. I understand that if 3 unique users report..."</strong>
                     </p>
                     {!form.broker_confirmed && (
                       <p className="text-xs text-[#C4622D] mt-2 flex items-center gap-1">
@@ -615,7 +649,7 @@ export default function ListProperty() {
                   <div className="flex justify-between"><span className="text-muted-foreground">Title</span><span className="font-medium text-[#1A1208] text-right max-w-[60%]">{form.title || "—"}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Type</span><span className="font-medium text-[#1A1208]">{form.property_type || "—"}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Location</span><span className="font-medium text-[#1A1208]">{form.location || "—"}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Rent</span><span className="font-medium text-[#1A1208]">{form.price ? `Rs. ${Number(form.price).toLocaleString()}/mo` : "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Rent</span><span className="font-medium text-[#1A1208]">{form.price ? `Rs. ${Number(form.price).toLocaleString()}` : "—"}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Landlord</span><span className="font-medium text-[#1A1208]">{form.full_name || "—"}</span></div>
                 </div>
               </div>
