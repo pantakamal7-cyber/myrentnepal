@@ -1,3 +1,9 @@
-// Placeholder for template compatibility.
-// This project is deployed as a static Cloudflare assets app from client/dist.
-export {};
+export interface Env {
+  ASSETS: Fetcher;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return env.ASSETS.fetch(request);
+  },
+} satisfies ExportedHandler<Env>;
