@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import FilterPanel from "@/components/FilterPanel";
-import { MOCK_LISTINGS, type PropertyType } from "@/lib/data";
+import { MOCK_LISTINGS, getStoredListings, type PropertyType } from "@/lib/data";
 
 export default function Listings() {
   const searchStr = useSearch();
@@ -37,7 +37,7 @@ export default function Listings() {
   };
 
   const filtered = useMemo(() => {
-    return MOCK_LISTINGS.filter((l) => {
+    return [...MOCK_LISTINGS, ...getStoredListings()].filter((l) => {
       if (l.availability_status !== "Available") return false;
       if (query && !l.title.toLowerCase().includes(query.toLowerCase()) && !l.location.toLowerCase().includes(query.toLowerCase()) && !l.description.toLowerCase().includes(query.toLowerCase())) return false;
       if (location && l.location !== location) return false;

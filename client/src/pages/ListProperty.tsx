@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { KATHMANDU_LOCATIONS, PROPERTY_TYPES, type Listing, type PropertyType, saveListingToStorage } from "@/lib/data";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -64,9 +64,45 @@ export default function ListProperty() {
       return;
     }
 
+    const today = new Date();
+    const expiry = new Date(today);
+    expiry.setDate(expiry.getDate() + 14);
+
+    const newListing: Listing = {
+      property_id: `user-${Date.now()}`,
+      landlord_id: `landlord-${Date.now()}`,
+      landlord_name: form.full_name,
+      landlord_phone: form.phone,
+      title: form.title,
+      property_type: form.property_type as PropertyType,
+      price_npr: Number(form.price) || 0,
+      security_deposit_npr: Number(form.deposit) || 0,
+      location: form.location,
+      ward: "",
+      exact_address: form.exact_address,
+      amenities: form.amenities,
+      images: [],
+      date_listed: today.toISOString().slice(0, 10),
+      expiry_date: expiry.toISOString().slice(0, 10),
+      availability_status: "Available",
+      view_count: 0,
+      report_count: 0,
+      is_verified: false,
+      is_broker_free: form.broker_confirmed,
+      water_availability: form.water,
+      parking_bike: form.parking_bike,
+      parking_car: form.parking_car,
+      electricity_submeter: form.submeter,
+      bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+      bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
+      area_sqft: form.area ? Number(form.area) : undefined,
+      description: form.description,
+    };
+
+    saveListingToStorage(newListing);
     setSubmitted(true);
-    toast.success("Listing submitted for verification!", {
-      description: "Our team will review your documents within 24-48 hours.",
+    toast.success("Listing submitted!", {
+      description: "Your listing is now live. Once verified, it will display the verified badge.",
     });
   };
 

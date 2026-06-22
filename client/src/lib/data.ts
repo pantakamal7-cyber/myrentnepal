@@ -313,3 +313,24 @@ export const getDaysUntilExpiry = (expiryDate: string): number => {
 export const formatNPR = (amount: number): string => {
   return `Rs. ${amount.toLocaleString("en-IN")}`;
 };
+
+// ──────────────────────────────────────────────────────────────
+// localStorage persistence – submitted listings survive page refresh
+// ──────────────────────────────────────────────────────────────
+const STORAGE_KEY = "myrent_user_listings";
+
+export function getStoredListings(): Listing[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as Listing[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveListingToStorage(listing: Listing): void {
+  const existing = getStoredListings();
+  existing.push(listing);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+}
+
