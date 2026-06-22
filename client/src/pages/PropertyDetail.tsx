@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { MOCK_LISTINGS, formatNPR, getDaysUntilExpiry } from "@/lib/data";
+import { MOCK_LISTINGS, getStoredListings, formatNPR, getDaysUntilExpiry } from "@/lib/data";
 import { MapView } from "@/components/Map";
+
+const PLACEHOLDER_IMG = "https://placehold.co/800x450?text=No+Image";
 
 export default function PropertyDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +29,11 @@ export default function PropertyDetail() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const listing = MOCK_LISTINGS.find((l) => l.property_id === id);
+  const allListings = [...MOCK_LISTINGS, ...getStoredListings()];
+  const listing = allListings.find((l) => l.property_id === id);
+
+  // Ensure images array always has at least one entry to prevent crashes
+  const images = listing && listing.images.length > 0 ? listing.images : [PLACEHOLDER_IMG];
 
   if (!listing) {
     return (
@@ -56,7 +62,7 @@ export default function PropertyDetail() {
 
   const daysLeft = getDaysUntilExpiry(listing.expiry_date);
   const isExpiringSoon = daysLeft <= 3 && daysLeft > 0;
-  const related = MOCK_LISTINGS.filter(
+  const related = allListings.filter(
     (l) => l.property_id !== listing.property_id && l.location === listing.location && l.availability_status === "Available"
   ).slice(0, 3);
 
@@ -118,7 +124,7 @@ export default function PropertyDetail() {
               {/* Photo Gallery */}
               <div className="relative overflow-hidden bg-[#1A1208]" style={{ borderRadius: "2px", aspectRatio: "16/9" }}>
                 <img
-                  src={listing.images[currentImg]}
+                  src={images[currentImg]}
                   alt={listing.title}
                   className="w-full h-full object-cover transition-opacity duration-300"
                 />
@@ -142,7 +148,7 @@ export default function PropertyDetail() {
                   </span>
                 </div>
                 {/* Navigation arrows */}
-                {listing.images.length > 1 && (
+                {images.length > 1 && (
                   <>
                     <button
                       onClick={() => setCurrentImg((i) => Math.max(0, i - 1))}
@@ -153,8 +159,8 @@ export default function PropertyDetail() {
                       <ChevronLeft size={18} />
                     </button>
                     <button
-                      onClick={() => setCurrentImg((i) => Math.min(listing.images.length - 1, i + 1))}
-                      disabled={currentImg === listing.images.length - 1}
+                      onClick={() => setCurrentImg((i) => Math.min(images.length - 1, i + 1))}
+                      disabled={currentImg === images.length - 1}
                       className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/50 text-white flex items-center justify-center hover:bg-black/70 disabled:opacity-30 transition-all"
                       style={{ borderRadius: "2px" }}
                     >
@@ -164,7 +170,7 @@ export default function PropertyDetail() {
                 )}
                 {/* Image counter */}
                 <div className="absolute bottom-3 right-3 text-white text-xs px-2 py-1" style={{ background: "rgba(26,18,8,0.6)", backdropFilter: "blur(4px)" }}>
-                  {currentImg + 1} / {listing.images.length}
+                  {currentImg + 1} / {images.length}
                 </div>
                 {/* View count */}
                 <div className="absolute bottom-3 left-3 flex items-center gap-1 text-white text-xs" style={{ background: "rgba(26,18,8,0.6)", backdropFilter: "blur(4px)", padding: "3px 8px" }}>
@@ -173,9 +179,9 @@ export default function PropertyDetail() {
               </div>
 
               {/* Thumbnails */}
-              {listing.images.length > 1 && (
+              {images.length > 1 && (
                 <div className="flex gap-2">
-                  {listing.images.map((img, i) => (
+                  {images.map((img, i) => (
                     <button
                       key={i}
                       onClick={() => setCurrentImg(i)}

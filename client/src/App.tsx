@@ -14,6 +14,12 @@ import PropertyDetail from "./pages/PropertyDetail";
 import ListProperty from "./pages/ListProperty";
 import HowItWorks from "./pages/HowItWorks";
 import Login from "./pages/Login";
+import AntiFraud from "./pages/AntiFraud";
+import FAQ from "./pages/FAQ";
+import Privacy from "./pages/Privacy";
+import ReportListing from "./pages/ReportListing";
+import Terms from "./pages/Terms";
+import Verification from "./pages/Verification";
 
 function Router() {
   return (
@@ -24,6 +30,12 @@ function Router() {
       <Route path="/list-property" component={ListProperty} />
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/login" component={Login} />
+      <Route path="/anti-fraud" component={AntiFraud} />
+      <Route path="/faq" component={FAQ} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/report" component={ReportListing} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/verification" component={Verification} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
