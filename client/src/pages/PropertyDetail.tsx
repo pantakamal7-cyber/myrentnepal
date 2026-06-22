@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { MOCK_LISTINGS, getStoredListings, formatNPR, getDaysUntilExpiry } from "@/lib/data";
+import { getStoredListings, formatNPR, getDaysUntilExpiry } from "@/lib/data";
 import { MapView } from "@/components/Map";
 
 const PLACEHOLDER_IMG = "https://placehold.co/800x450?text=No+Image";
@@ -29,7 +29,7 @@ export default function PropertyDetail() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const allListings = [...MOCK_LISTINGS, ...getStoredListings()];
+  const allListings = getStoredListings();
   const listing = allListings.find((l) => l.property_id === id);
 
   // Ensure images array always has at least one entry to prevent crashes

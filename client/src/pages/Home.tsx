@@ -12,7 +12,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { MOCK_LISTINGS, KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { getStoredListings, KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/hero_kathmandu-n5m7iM9LSMmw95w8MNqWwJ.webp";
 
@@ -39,8 +39,9 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const verifiedListings = MOCK_LISTINGS.filter((l) => l.is_verified && l.availability_status === "Available");
-  const recentListings = MOCK_LISTINGS.filter((l) => l.availability_status === "Available").slice(0, 6);
+  const allListings = getStoredListings();
+  const verifiedListings = allListings.filter((l) => l.is_verified && l.availability_status === "Available");
+  const recentListings = allListings.filter((l) => l.availability_status === "Available").slice(0, 6);
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -239,9 +240,22 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {verifiedListings.slice(0, 6).map((listing, i) => (
-              <PropertyCard key={listing.property_id} property={listing} index={i} />
-            ))}
+            {verifiedListings.slice(0, 6).length > 0 ? (
+              verifiedListings.slice(0, 6).map((listing, i) => (
+                <PropertyCard key={listing.property_id} property={listing} index={i} />
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center border border-dashed border-border" style={{ borderRadius: "4px" }}>
+                <p className="text-muted-foreground text-sm mb-4">No verified listings yet. Be the first landlord to list!</p>
+                <button
+                  onClick={() => navigate("/list-property")}
+                  className="text-xs font-bold text-white bg-[#C4622D] px-5 py-2.5 uppercase tracking-wider hover:bg-[#a85226] transition-colors"
+                  style={{ borderRadius: "2px" }}
+                >
+                  List Your Property
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="mt-8 text-center sm:hidden">

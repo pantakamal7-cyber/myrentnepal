@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
-import { useSearch } from "wouter";
-import { Search, X, Filter, ClipboardList } from "lucide-react";
+import { useSearch, useLocation } from "wouter";
+import { Search, X, Filter } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import FilterPanel from "@/components/FilterPanel";
-import { MOCK_LISTINGS, getStoredListings, type PropertyType } from "@/lib/data";
+import { getStoredListings, type PropertyType } from "@/lib/data";
 
 export default function Listings() {
   const searchStr = useSearch();
+  const [, navigate] = useLocation();
   const getParam = (k: string) => new URLSearchParams(window.location.search).get(k) || "";
-  const [myListings] = useState(() => getStoredListings());
 
   const [query, setQuery] = useState(getParam("q"));
   const [location, setLocation] = useState(getParam("location"));
@@ -38,7 +38,7 @@ export default function Listings() {
   };
 
   const filtered = useMemo(() => {
-    return [...MOCK_LISTINGS, ...getStoredListings()].filter((l) => {
+    return getStoredListings().filter((l) => {
       if (l.availability_status !== "Available") return false;
       if (query && !l.title.toLowerCase().includes(query.toLowerCase()) && !l.location.toLowerCase().includes(query.toLowerCase()) && !l.description.toLowerCase().includes(query.toLowerCase())) return false;
       if (location && l.location !== location) return false;
@@ -88,22 +88,26 @@ export default function Listings() {
               </div>
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden px-4 border border-border flex items-center gap-2 text-sm bg-white" style={{ borderRadius: "2px" }}><Filter size={14} /> Filter</button>
             </div>
-            {myListings.length > 0 && (
-              <div className="border border-[#C4622D]/30 bg-[#C4622D]/5 p-4" style={{ borderRadius: "2px" }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <ClipboardList size={16} className="text-[#C4622D]" />
-                  <span className="text-sm font-bold text-[#1A1208]">Your Submitted Listings ({myListings.length})</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {myListings.map((item, idx) => <PropertyCard key={item.property_id || idx} property={item} index={idx} />)}
-                </div>
-              </div>
-            )}
-            <div className="text-sm text-muted-foreground">{`${filtered.length} properties available`}</div>
+            <div className="text-sm text-muted-foreground">{`${filtered.length} ${filtered.length === 1 ? "property" : "properties"} listed`}</div>
             {filtered.length === 0 ? (
-              <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>
-                <p className="text-muted-foreground text-sm">No listings match your filter paths.</p>
-                <button onClick={clearFilters} className="text-xs font-bold text-[#C4622D] uppercase tracking-wider underline">Clear All Filters</button>
+              <div className="py-20 text-center space-y-4 border border-dashed border-border" style={{ borderRadius: "4px" }}>
+                {hasActiveFilters ? (
+                  <>
+                    <p className="text-muted-foreground text-sm">No listings match your filters.</p>
+                    <button onClick={clearFilters} className="text-xs font-bold text-[#C4622D] uppercase tracking-wider underline">Clear All Filters</button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground text-sm">No listings yet — be the first to list your property!</p>
+                    <button
+                      onClick={() => navigate("/list-property")}
+                      className="text-xs font-bold text-white bg-[#C4622D] px-5 py-2.5 uppercase tracking-wider hover:bg-[#a85226] transition-colors"
+                      style={{ borderRadius: "2px" }}
+                    >
+                      List Your Property
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
