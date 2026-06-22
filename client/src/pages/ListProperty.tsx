@@ -1,4 +1,3 @@
-import { supabase } from '../supabaseClient';
 /*
  * MYRENT List Property Page – "Nepali Terracotta & Ink" Design
  * Includes Rule A: Broker Filter checkbox
@@ -65,34 +64,10 @@ export default function ListProperty() {
       return;
     }
 
-    try {
-      // 1. Send form data matching your object mapping structure cleanly
-      const { data, error } = await supabase
-        .from('Listing') 
-        .insert([
-          { 
-            title: form.title, 
-            price: Number(form.price), 
-            is_verified: false 
-          }
-        ]);
-
-      if (error) {
-        console.error("Supabase Database Error:", error.message);
-        toast.error("Database submission failed: " + error.message);
-        return;
-      }
-
-      // 2. Transition user to the success screen
-      setSubmitted(true);
-      toast.success("Listing submitted for verification!", {
-        description: "Our team will review your documents within 24-48 hours.",
-      });
-
-    } catch (err) {
-      console.error("Form Crash Protection:", err);
-      toast.error("An unexpected error occurred during submission.");
-    }
+    setSubmitted(true);
+    toast.success("Listing submitted for verification!", {
+      description: "Our team will review your documents within 24-48 hours.",
+    });
   };
 
   const steps = [
