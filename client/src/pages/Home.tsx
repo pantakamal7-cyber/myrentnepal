@@ -3,7 +3,7 @@
  * Full-bleed hero with asymmetric search panel, verified listings grid,
  * how-it-works section, and anti-fraud trust signals
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   Search, MapPin, SlidersHorizontal, ShieldCheck, Ban, Clock,
@@ -12,7 +12,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { getStoredListings, KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { fetchListings, KATHMANDU_LOCATIONS, PROPERTY_TYPES, type Listing } from "@/lib/data";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/hero_kathmandu-n5m7iM9LSMmw95w8MNqWwJ.webp";
 
@@ -21,6 +21,11 @@ export default function Home() {
   const [searchLocation, setSearchLocation] = useState("");
   const [searchType, setSearchType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [allListings, setAllListings] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    fetchListings().then(setAllListings);
+  }, []);
 
     // 🚀 Force clean hard-redirect parameters to clear sticky React state containers
   const handleSearch = (e: React.FormEvent) => {
@@ -39,7 +44,6 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const allListings = getStoredListings();
   const verifiedListings = allListings.filter((l) => l.is_verified && l.availability_status === "Available");
   const recentListings = allListings.filter((l) => l.availability_status === "Available").slice(0, 6);
 

@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { KATHMANDU_LOCATIONS, PROPERTY_TYPES, type Listing, type PropertyType, saveListingToStorage } from "@/lib/data";
+import { KATHMANDU_LOCATIONS, PROPERTY_TYPES, type Listing, type PropertyType, insertListing } from "@/lib/data";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -99,7 +99,11 @@ export default function ListProperty() {
       description: form.description,
     };
 
-    saveListingToStorage(newListing);
+    const { error } = await insertListing(newListing);
+    if (error) {
+      toast.error("Failed to submit listing. Please try again.", { description: error });
+      return;
+    }
     setSubmitted(true);
     toast.success("Listing submitted!", {
       description: "Your listing is now live. Once verified, it will display the verified badge.",

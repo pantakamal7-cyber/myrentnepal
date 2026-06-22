@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
 import FilterPanel from "@/components/FilterPanel";
-import { getStoredListings, type PropertyType } from "@/lib/data";
+import { fetchListings, type Listing, type PropertyType } from "@/lib/data";
 
 export default function Listings() {
   const searchStr = useSearch();
@@ -22,6 +22,16 @@ export default function Listings() {
   const [waterOnly, setWaterOnly] = useState(getParam("water") === "true");
   const [parkingOnly, setParkingOnly] = useState(getParam("parking") === "true");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [allListings, setAllListings] = useState<Listing[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchListings().then((data) => {
+      setAllListings(data);
+      setLoading(false);
+    });
+  }, []);
 
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -38,7 +48,7 @@ export default function Listings() {
   };
 
   const filtered = useMemo(() => {
-    return getStoredListings().filter((l) => {
+    return allListings.filter((l) => {
       if (l.availability_status !== "Available") return false;
       if (query && !l.title.toLowerCase().includes(query.toLowerCase()) && !l.location.toLowerCase().includes(query.toLowerCase()) && !l.description.toLowerCase().includes(query.toLowerCase())) return false;
       if (location && l.location !== location) return false;
@@ -50,7 +60,7 @@ export default function Listings() {
       if (parkingOnly && !l.parking_bike && !l.parking_car) return false;
       return true;
     });
-  }, [query, location, propertyType, minPrice, maxPrice, verifiedOnly, noBrokerOnly, waterOnly, parkingOnly]);
+  }, [allListings, query, location, propertyType, minPrice, maxPrice, verifiedOnly, noBrokerOnly, waterOnly, parkingOnly]);
 
   const clearFilters = () => {
     setQuery(""); setLocation(""); setPropertyType(""); setMinPrice(0); setMaxPrice(100000);
@@ -88,8 +98,12 @@ export default function Listings() {
               </div>
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden px-4 border border-border flex items-center gap-2 text-sm bg-white" style={{ borderRadius: "2px" }}><Filter size={14} /> Filter</button>
             </div>
-            <div className="text-sm text-muted-foreground">{`${filtered.length} ${filtered.length === 1 ? "property" : "properties"} listed`}</div>
-            {filtered.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              {loading ? "Loading listings…" : `${filtered.length} ${filtered.length === 1 ? "property" : "properties"} listed`}
+            </div>
+            {loading ? (
+              <div className="py-20 text-center text-muted-foreground text-sm">Loading properties from database…</div>
+            ) : filtered.length === 0 ? (
               <div className="py-20 text-center space-y-4 border border-dashed border-border" style={{ borderRadius: "4px" }}>
                 {hasActiveFilters ? (
                   <>

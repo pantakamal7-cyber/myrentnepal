@@ -3,7 +3,7 @@
  * Prioritizes real photos, large bold pricing, utility rules, and direct CTA buttons.
  * Includes Report button (Rule C), Broker-free confirmation, and expiry warning.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import {
   MapPin, Phone, MessageCircle, Flag, ShieldCheck, Ban, Clock,
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { getStoredListings, formatNPR, getDaysUntilExpiry } from "@/lib/data";
+import { fetchListings, fetchListingById, formatNPR, getDaysUntilExpiry, type Listing } from "@/lib/data";
 import { MapView } from "@/components/Map";
 
 const PLACEHOLDER_IMG = "https://placehold.co/800x450?text=No+Image";
@@ -28,12 +28,39 @@ export default function PropertyDetail() {
   const [reportReason, setReportReason] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [listing, setListing] = useState<Listing | null | undefined>(undefined);
+  const [related, setRelated] = useState<Listing[]>([]);
 
-  const allListings = getStoredListings();
-  const listing = allListings.find((l) => l.property_id === id);
+  useEffect(() => {
+    if (!id) return;
+    fetchListingById(id).then((data) => {
+      setListing(data);
+    });
+    fetchListings().then((all) => {
+      if (id) {
+        setRelated(
+          all
+            .filter((l) => l.property_id !== id && l.availability_status === "Available")
+            .slice(0, 3)
+        );
+      }
+    });
+  }, [id]);
 
   // Ensure images array always has at least one entry to prevent crashes
   const images = listing && listing.images.length > 0 ? listing.images : [PLACEHOLDER_IMG];
+
+  if (listing === undefined) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center text-muted-foreground text-sm">Loading property…</div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!listing) {
     return (
@@ -62,9 +89,6 @@ export default function PropertyDetail() {
 
   const daysLeft = getDaysUntilExpiry(listing.expiry_date);
   const isExpiringSoon = daysLeft <= 3 && daysLeft > 0;
-  const related = allListings.filter(
-    (l) => l.property_id !== listing.property_id && l.location === listing.location && l.availability_status === "Available"
-  ).slice(0, 3);
 
   const handleCall = () => {
     window.location.href = `tel:${listing.landlord_phone}`;

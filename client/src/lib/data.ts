@@ -315,22 +315,60 @@ export const formatNPR = (amount: number): string => {
 };
 
 // ──────────────────────────────────────────────────────────────
-// localStorage persistence – submitted listings survive page refresh
+// Supabase data layer
 // ──────────────────────────────────────────────────────────────
-const STORAGE_KEY = "myrent_user_listings";
+import { supabase } from "./supabase";
 
-export function getStoredListings(): Listing[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Listing[]) : [];
-  } catch {
+const TABLE = "listings";
+
+/** Fetch all available listings from Supabase. */
+export async function fetchListings(): Promise<Listing[]> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("availability_status", "Available")
+    .order("date_listed", { ascending: false });
+  if (error) {
+    console.error("fetchListings error:", error.message);
     return [];
   }
+  return (data ?? []) as Listing[];
 }
 
-export function saveListingToStorage(listing: Listing): void {
-  const existing = getStoredListings();
-  existing.push(listing);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+/** Fetch a single listing by its property_id. */
+export async function fetchListingById(id: string): Promise<Listing | null> {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("property_id", id)
+    .maybeSingle();
+  if (error) {
+    console.error("fetchListingById error:", error.message);
+    return null;
+  }
+  return data as Listing | null;
+}
+
+/** Insert a new listing into Supabase. */
+export async function insertListing(listing: Listing): Promise<{ error: string | null }> {
+  const { error } = await supabase.from(TABLE).insert([listing]);
+  if (error) {
+    console.error("insertListing error:", error.message);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// ──────────────────────────────────────────────────────────────
+// Legacy localStorage helpers kept for backward-compat
+// ──────────────────────────────────────────────────────────────
+/** @deprecated Use fetchListings() instead. */
+export function getStoredListings(): Listing[] {
+  return [];
+}
+
+/** @deprecated Use insertListing() instead. */
+export function saveListingToStorage(_listing: Listing): void {
+  // no-op — data now lives in Supabase
 }
 
