@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useSearch } from "wouter";
-import { Search, X, Filter } from "lucide-react";
+import { Search, X, Filter, ClipboardList } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
@@ -10,6 +10,7 @@ import { MOCK_LISTINGS, getStoredListings, type PropertyType } from "@/lib/data"
 export default function Listings() {
   const searchStr = useSearch();
   const getParam = (k: string) => new URLSearchParams(window.location.search).get(k) || "";
+  const [myListings] = useState(() => getStoredListings());
 
   const [query, setQuery] = useState(getParam("q"));
   const [location, setLocation] = useState(getParam("location"));
@@ -87,6 +88,17 @@ export default function Listings() {
               </div>
               <button onClick={() => setSidebarOpen(true)} className="lg:hidden px-4 border border-border flex items-center gap-2 text-sm bg-white" style={{ borderRadius: "2px" }}><Filter size={14} /> Filter</button>
             </div>
+            {myListings.length > 0 && (
+              <div className="border border-[#C4622D]/30 bg-[#C4622D]/5 p-4" style={{ borderRadius: "2px" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <ClipboardList size={16} className="text-[#C4622D]" />
+                  <span className="text-sm font-bold text-[#1A1208]">Your Submitted Listings ({myListings.length})</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {myListings.map((item, idx) => <PropertyCard key={item.property_id || idx} property={item} index={idx} />)}
+                </div>
+              </div>
+            )}
             <div className="text-sm text-muted-foreground">{`${filtered.length} properties available`}</div>
             {filtered.length === 0 ? (
               <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>

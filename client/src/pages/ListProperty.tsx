@@ -130,7 +130,7 @@ export default function ListProperty() {
             <div className="bg-[#F5EFE0] border border-border p-4 text-left mb-6 space-y-2" style={{ borderRadius: "2px" }}>
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={14} className="text-[#C4622D]" />
-                <span>Your listing will go live once documents are verified (24-48 hrs)</span>
+                <span>Your listing is <strong>live now</strong> and visible on the Browse Listings page. A verified badge will be added once your documents are reviewed (24-48 hrs)</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={14} className="text-amber-600" />
