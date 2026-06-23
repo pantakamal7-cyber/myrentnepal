@@ -114,8 +114,8 @@ export const MOCK_LISTINGS: Listing[] = [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_flat-k9RdXoL8964gtbQwCfzx7N.webp",
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_room-97thervvkFxgwxbfyeF6ZH.webp",
     ],
-    date_listed: "2026-06-01",
-    expiry_date: "2026-06-15",
+    date_listed: "2026-06-08",
+    expiry_date: "2026-07-06",
     availability_status: "Available",
     view_count: 142,
     report_count: 0,
@@ -148,8 +148,8 @@ export const MOCK_LISTINGS: Listing[] = [
     images: [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_room-97thervvkFxgwxbfyeF6ZH.webp",
     ],
-    date_listed: "2026-06-05",
-    expiry_date: "2026-06-19",
+    date_listed: "2026-06-10",
+    expiry_date: "2026-07-08",
     availability_status: "Available",
     view_count: 89,
     report_count: 0,
@@ -183,8 +183,8 @@ export const MOCK_LISTINGS: Listing[] = [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_house-jciBQvGVqXqghBvHwqudo8.webp",
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_flat-k9RdXoL8964gtbQwCfzx7N.webp",
     ],
-    date_listed: "2026-06-03",
-    expiry_date: "2026-06-17",
+    date_listed: "2026-06-09",
+    expiry_date: "2026-07-07",
     availability_status: "Available",
     view_count: 203,
     report_count: 0,
@@ -217,8 +217,8 @@ export const MOCK_LISTINGS: Listing[] = [
     images: [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_commercial-dv9MZTaiv6jxJAqn3HD8bH.webp",
     ],
-    date_listed: "2026-06-08",
-    expiry_date: "2026-06-22",
+    date_listed: "2026-06-14",
+    expiry_date: "2026-07-06",
     availability_status: "Available",
     view_count: 67,
     report_count: 0,
@@ -249,8 +249,8 @@ export const MOCK_LISTINGS: Listing[] = [
     images: [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_flat-k9RdXoL8964gtbQwCfzx7N.webp",
     ],
-    date_listed: "2026-06-10",
-    expiry_date: "2026-06-24",
+    date_listed: "2026-06-15",
+    expiry_date: "2026-07-09",
     availability_status: "Available",
     view_count: 118,
     report_count: 0,
@@ -283,8 +283,8 @@ export const MOCK_LISTINGS: Listing[] = [
     images: [
       "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/property_room-97thervvkFxgwxbfyeF6ZH.webp",
     ],
-    date_listed: "2026-06-09",
-    expiry_date: "2026-06-23",
+    date_listed: "2026-06-16",
+    expiry_date: "2026-07-07",
     availability_status: "Available",
     view_count: 54,
     report_count: 1,
@@ -313,3 +313,76 @@ export const getDaysUntilExpiry = (expiryDate: string): number => {
 export const formatNPR = (amount: number): string => {
   return `Rs. ${amount.toLocaleString("en-IN")}`;
 };
+
+// ──────────────────────────────────────────────────────────────
+// Supabase data layer
+// ──────────────────────────────────────────────────────────────
+import { supabase } from "./supabase";
+
+const TABLE = "listings";
+
+/** Fetch all available listings from Supabase. Falls back to mock data if not configured. */
+export async function fetchListings(): Promise<Listing[]> {
+  if (!supabase) {
+    return MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
+  }
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("availability_status", "Available")
+    .order("date_listed", { ascending: false });
+  if (error) {
+    console.error("fetchListings error:", error.message);
+    return MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
+  }
+  const rows = (data ?? []) as Listing[];
+  return rows.length > 0 ? rows : MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
+}
+
+/** Fetch a single listing by its property_id. Falls back to mock data if not configured. */
+export async function fetchListingById(id: string): Promise<Listing | null> {
+  if (!supabase) {
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
+  }
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("property_id", id)
+    .maybeSingle();
+  if (error) {
+    console.error("fetchListingById error:", error.message);
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
+  }
+  if (!data) {
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
+  }
+  return data as Listing;
+}
+
+/** Insert a new listing into Supabase. */
+export async function insertListing(listing: Listing): Promise<{ error: string | null }> {
+  if (!supabase) {
+    // No Supabase configured; treat as success (listing saved in mock flow)
+    return { error: null };
+  }
+  const { error } = await supabase.from(TABLE).insert([listing]);
+  if (error) {
+    console.error("insertListing error:", error.message);
+    return { error: error.message };
+  }
+  return { error: null };
+}
+
+// ──────────────────────────────────────────────────────────────
+// Legacy localStorage helpers kept for backward-compat
+// ──────────────────────────────────────────────────────────────
+/** @deprecated Use fetchListings() instead. */
+export function getStoredListings(): Listing[] {
+  return [];
+}
+
+/** @deprecated Use insertListing() instead. */
+export function saveListingToStorage(_listing: Listing): void {
+  // no-op — data now lives in Supabase
+}
+

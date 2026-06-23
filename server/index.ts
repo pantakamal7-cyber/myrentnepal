@@ -1,30 +1,9 @@
-import express from "express";
-import { createServer } from "http";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-async function startServer() {
-  const app = express();
-  const server = createServer(app);
-
-  // 📁 Unified path mapping tracking directly inside your compiled front-end directory
-  const staticPath = path.resolve(__dirname, "..", "client", "dist");
-
-  app.use(express.static(staticPath));
-
-  // 🛡️ Catch-all SPA router: Serves your index.html for all sub-routes smoothly
-  app.get("*", (_req: any, res: any) => {
-    res.sendFile(path.join(staticPath, "index.html"));
-  });
-
-  const port = process.env.PORT || 3000;
-
-  server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+export interface Env {
+  ASSETS: Fetcher;
 }
 
-startServer().catch(console.error);
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return env.ASSETS.fetch(request);
+  },
+} satisfies ExportedHandler<Env>;
