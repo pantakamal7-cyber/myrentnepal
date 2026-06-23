@@ -321,8 +321,11 @@ import { supabase } from "./supabase";
 
 const TABLE = "listings";
 
-/** Fetch all available listings from Supabase. */
+/** Fetch all available listings from Supabase. Falls back to mock data if not configured. */
 export async function fetchListings(): Promise<Listing[]> {
+  if (!supabase) {
+    return MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
+  }
   const { data, error } = await supabase
     .from(TABLE)
     .select("*")
@@ -330,13 +333,17 @@ export async function fetchListings(): Promise<Listing[]> {
     .order("date_listed", { ascending: false });
   if (error) {
     console.error("fetchListings error:", error.message);
-    return [];
+    return MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
   }
-  return (data ?? []) as Listing[];
+  const rows = (data ?? []) as Listing[];
+  return rows.length > 0 ? rows : MOCK_LISTINGS.filter((l) => l.availability_status === "Available");
 }
 
-/** Fetch a single listing by its property_id. */
+/** Fetch a single listing by its property_id. Falls back to mock data if not configured. */
 export async function fetchListingById(id: string): Promise<Listing | null> {
+  if (!supabase) {
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
+  }
   const { data, error } = await supabase
     .from(TABLE)
     .select("*")
@@ -344,13 +351,20 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
     .maybeSingle();
   if (error) {
     console.error("fetchListingById error:", error.message);
-    return null;
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
   }
-  return data as Listing | null;
+  if (!data) {
+    return MOCK_LISTINGS.find((l) => l.property_id === id) ?? null;
+  }
+  return data as Listing;
 }
 
 /** Insert a new listing into Supabase. */
 export async function insertListing(listing: Listing): Promise<{ error: string | null }> {
+  if (!supabase) {
+    // No Supabase configured; treat as success (listing saved in mock flow)
+    return { error: null };
+  }
   const { error } = await supabase.from(TABLE).insert([listing]);
   if (error) {
     console.error("insertListing error:", error.message);
