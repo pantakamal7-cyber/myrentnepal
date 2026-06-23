@@ -319,7 +319,7 @@ export const formatNPR = (amount: number): string => {
 // ──────────────────────────────────────────────────────────────
 import { supabase } from "./supabase";
 
-const TABLE = "listings";
+const TABLE = "Listing";
 
 /** Fetch all available listings from Supabase. Falls back to mock data if not configured. */
 export async function fetchListings(): Promise<Listing[]> {
