@@ -562,7 +562,9 @@ export default function PropertyDetail() {
                 Similar Properties Nearby
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {related.map((l, i) => <PropertyCard key={l.property_id} property={l} index={i} />)}
+                {related.map((relatedListing, index) => (
+                  <PropertyCard key={relatedListing.property_id} property={relatedListing} index={index} />
+                ))}
               </div>
             </div>
           )}

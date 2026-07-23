@@ -119,7 +119,7 @@ export default function Listings() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filtered.map((item, idx) => <PropertyCard key={item.property_id || idx} property={item} index={idx} />)}
+                {filtered.map((item, index) => <PropertyCard key={item.property_id} property={item} index={index} />)}
               </div>
             )}
           </div>
