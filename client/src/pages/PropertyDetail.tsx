@@ -66,7 +66,11 @@ export default function PropertyDetail() {
       })
       .catch((error) => {
         if (!active) return;
-        setLoadError(error instanceof Error ? error.message : "Failed to load property details.");
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load property details. Please try again or contact support if the problem persists.",
+        );
       })
       .finally(() => {
         if (active) setIsLoading(false);

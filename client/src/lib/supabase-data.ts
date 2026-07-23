@@ -1,6 +1,8 @@
 import { supabase } from "../supabaseClient";
 import { type Listing } from "./data";
 
+const DEFAULT_EXPIRY_DAYS = 14;
+
 const toBoolean = (value: unknown, fallback = false): boolean => {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") {
@@ -29,7 +31,7 @@ type RawListing = Record<string, unknown>;
 
 const normalizeListing = (raw: RawListing): Listing => {
   const now = new Date();
-  const defaultExpiry = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const defaultExpiry = new Date(now.getTime() + DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
   return {
     property_id: String(raw?.property_id ?? raw?.id ?? ""),
@@ -75,28 +77,28 @@ export async function fetchListings(): Promise<Listing[]> {
 }
 
 export async function fetchListingById(id: string): Promise<Listing | undefined> {
-  try {
-    const byPropertyId = await supabase
-      .from("Listing")
-      .select("*")
-      .eq("property_id", id)
-      .limit(1);
+  const byPropertyId = await supabase
+    .from("Listing")
+    .select("*")
+    .eq("property_id", id)
+    .limit(1);
 
-    if (!byPropertyId.error && byPropertyId.data && byPropertyId.data.length > 0) {
-      return normalizeListing(byPropertyId.data[0] as RawListing);
-    }
+  if (!byPropertyId.error && byPropertyId.data && byPropertyId.data.length > 0) {
+    return normalizeListing(byPropertyId.data[0] as RawListing);
+  }
 
-    const byId = await supabase
-      .from("Listing")
-      .select("*")
-      .eq("id", id)
-      .limit(1);
+  const byId = await supabase
+    .from("Listing")
+    .select("*")
+    .eq("id", id)
+    .limit(1);
 
-    if (!byId.error && byId.data && byId.data.length > 0) {
-      return normalizeListing(byId.data[0] as RawListing);
-    }
-  } catch (e) {
-    console.warn(`Failed to fetch listing by id ${id} from Supabase:`, e);
+  if (byId.error) {
+    throw new Error(`Failed to fetch listing by id ${id} from Supabase: ${byId.error.message}`);
+  }
+
+  if (byId.data && byId.data.length > 0) {
+    return normalizeListing(byId.data[0] as RawListing);
   }
 
   return undefined;

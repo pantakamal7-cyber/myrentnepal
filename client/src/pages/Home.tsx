@@ -57,7 +57,7 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const verifiedListings = listings.filter(
+  const availableVerifiedListings = listings.filter(
     (listing) => listing.is_verified && listing.availability_status === "Available",
   );
 
@@ -258,7 +258,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {verifiedListings.slice(0, 6).map((listing, i) => (
+            {availableVerifiedListings.slice(0, 6).map((listing, i) => (
               <PropertyCard key={listing.property_id} property={listing} index={i} />
             ))}
           </div>
