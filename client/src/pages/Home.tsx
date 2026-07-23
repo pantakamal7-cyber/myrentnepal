@@ -23,12 +23,17 @@ export default function Home() {
   const [searchType, setSearchType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [listings, setListings] = useState<Listing[]>([]);
+  const [listingsError, setListingsError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    fetchListings().then((data) => {
-      if (active) setListings(data);
-    });
+    fetchListings()
+      .then((data) => {
+        if (active) setListings(data);
+      })
+      .catch((error) => {
+        if (active) setListingsError(error instanceof Error ? error.message : "Failed to load listings.");
+      });
 
     return () => {
       active = false;
@@ -257,6 +262,9 @@ export default function Home() {
               <PropertyCard key={listing.property_id} property={listing} index={i} />
             ))}
           </div>
+          {listingsError && (
+            <p className="mt-4 text-sm text-red-600">{listingsError}</p>
+          )}
 
           <div className="mt-8 text-center sm:hidden">
             <button

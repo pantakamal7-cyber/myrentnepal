@@ -30,6 +30,7 @@ export default function PropertyDetail() {
   const [listing, setListing] = useState<Listing | undefined>();
   const [related, setRelated] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -63,6 +64,10 @@ export default function PropertyDetail() {
             .slice(0, 3),
         );
       })
+      .catch((error) => {
+        if (!active) return;
+        setLoadError(error instanceof Error ? error.message : "Failed to load property details.");
+      })
       .finally(() => {
         if (active) setIsLoading(false);
       });
@@ -94,7 +99,7 @@ export default function PropertyDetail() {
             <h2 className="text-2xl font-bold text-[#1A1208] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
               Listing Not Found
             </h2>
-            <p className="text-muted-foreground mb-4">This property may have been removed or rented.</p>
+            <p className="text-muted-foreground mb-4">{loadError || "This property may have been removed or rented."}</p>
             <button
               onClick={() => navigate("/listings")}
               className="bg-[#C4622D] text-white px-6 py-2.5 text-sm font-semibold hover:bg-[#a85226] transition-colors"

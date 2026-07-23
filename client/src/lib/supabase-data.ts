@@ -66,18 +66,12 @@ const normalizeListing = (raw: RawListing): Listing => {
 };
 
 export async function fetchListings(): Promise<Listing[]> {
-  try {
-    const { data, error } = await supabase.from("Listing").select("*");
-    if (error) {
-      console.warn("Failed to fetch listings from Supabase:", error.message);
-      return [];
-    }
-    if (!data || data.length === 0) return [];
-    return data.map(normalizeListing);
-  } catch (e) {
-    console.warn("Failed to fetch listings from Supabase:", e);
-    return [];
+  const { data, error } = await supabase.from("Listing").select("*");
+  if (error) {
+    throw new Error(`Failed to fetch listings from Supabase: ${error.message}`);
   }
+  if (!data || data.length === 0) return [];
+  return data.map((item) => normalizeListing(item as RawListing));
 }
 
 export async function fetchListingById(id: string): Promise<Listing | undefined> {

@@ -24,12 +24,16 @@ export default function Listings() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     fetchListings()
       .then((data) => {
         if (active) setListings(data);
+      })
+      .catch((error) => {
+        if (active) setLoadError(error instanceof Error ? error.message : "Failed to load listings.");
       })
       .finally(() => {
         if (active) setIsLoading(false);
@@ -111,6 +115,10 @@ export default function Listings() {
             {isLoading ? (
               <div className="py-20 text-center text-sm text-muted-foreground border border-dashed border-border" style={{ borderRadius: "4px" }}>
                 Loading listings...
+              </div>
+            ) : loadError ? (
+              <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>
+                <p className="text-red-600 text-sm">{loadError}</p>
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-20 text-center space-y-3 border border-dashed border-border" style={{ borderRadius: "4px" }}>
