@@ -181,178 +181,42 @@ const buildListingRecord = (input: CreateListingInput): RawListing => {
     landlord_id: landlordId,
     landlord_name: input.full_name.trim(),
     landlord_phone: input.phone.trim(),
-    full_name: input.full_name.trim(),
-    phone: input.phone.trim(),
-    phone_number: input.phone.trim(),
-    email: input.email.trim(),
     title: input.title.trim(),
     property_type: input.property_type,
-    type: input.property_type,
     price_npr: input.price,
-    price: input.price,
     security_deposit_npr: input.deposit,
-    deposit: input.deposit,
     location: input.location,
     ward: input.location,
     exact_address: input.exact_address.trim(),
-    address: input.exact_address.trim(),
     amenities: input.amenities,
     images: input.images ?? [],
     date_listed: now.toISOString(),
-    created_at: now.toISOString(),
     expiry_date: expiryDate.toISOString(),
-    expiry: expiryDate.toISOString(),
     availability_status: "Available",
-    availability: "Available",
     view_count: 0,
     report_count: 0,
     is_verified: false,
     is_broker_free: input.broker_confirmed,
     water_availability: input.water,
-    water: input.water,
     parking_bike: input.parking_bike,
     parking_car: input.parking_car,
     electricity_submeter: input.submeter,
-    submeter: input.submeter,
     bedrooms: input.bedrooms,
     bathrooms: input.bathrooms,
     area_sqft: input.area,
-    area: input.area,
     description: input.description.trim(),
-    document_type: input.doc_type,
   };
 };
 
-const buildInsertCandidates = (record: RawListing): RawListing[] => [
-  {
-    property_id: record.property_id,
-    landlord_id: record.landlord_id,
-    landlord_name: record.landlord_name,
-    landlord_phone: record.landlord_phone,
-    title: record.title,
-    property_type: record.property_type,
-    price_npr: record.price_npr,
-    security_deposit_npr: record.security_deposit_npr,
-    location: record.location,
-    ward: record.ward,
-    exact_address: record.exact_address,
-    amenities: record.amenities,
-    images: record.images,
-    date_listed: record.date_listed,
-    expiry_date: record.expiry_date,
-    availability_status: record.availability_status,
-    view_count: record.view_count,
-    report_count: record.report_count,
-    is_verified: record.is_verified,
-    is_broker_free: record.is_broker_free,
-    water_availability: record.water_availability,
-    parking_bike: record.parking_bike,
-    parking_car: record.parking_car,
-    electricity_submeter: record.electricity_submeter,
-    bedrooms: record.bedrooms,
-    bathrooms: record.bathrooms,
-    area_sqft: record.area_sqft,
-    description: record.description,
-  },
-  {
-    property_id: record.property_id,
-    landlord_id: record.landlord_id,
-    full_name: record.full_name,
-    phone: record.phone,
-    phone_number: record.phone_number,
-    email: record.email,
-    title: record.title,
-    property_type: record.property_type,
-    type: record.type,
-    price: record.price,
-    deposit: record.deposit,
-    location: record.location,
-    exact_address: record.exact_address,
-    address: record.address,
-    amenities: record.amenities,
-    images: record.images,
-    created_at: record.created_at,
-    expiry: record.expiry,
-    availability: record.availability,
-    is_verified: record.is_verified,
-    is_broker_free: record.is_broker_free,
-    water: record.water,
-    parking_bike: record.parking_bike,
-    parking_car: record.parking_car,
-    submeter: record.submeter,
-    bedrooms: record.bedrooms,
-    bathrooms: record.bathrooms,
-    area: record.area,
-    description: record.description,
-    document_type: record.document_type,
-  },
-  {
-    full_name: record.full_name,
-    phone: record.phone,
-    email: record.email,
-    title: record.title,
-    property_type: record.property_type,
-    price: record.price,
-    deposit: record.deposit,
-    location: record.location,
-    exact_address: record.exact_address,
-    amenities: record.amenities,
-    images: record.images,
-    is_verified: record.is_verified,
-    is_broker_free: record.is_broker_free,
-    water: record.water,
-    parking_bike: record.parking_bike,
-    parking_car: record.parking_car,
-    submeter: record.submeter,
-    bedrooms: record.bedrooms,
-    bathrooms: record.bathrooms,
-    area: record.area,
-    description: record.description,
-  },
-  {
-    landlord_name: record.landlord_name,
-    landlord_phone: record.landlord_phone,
-    title: record.title,
-    property_type: record.property_type,
-    price_npr: record.price_npr,
-    security_deposit_npr: record.security_deposit_npr,
-    location: record.location,
-    exact_address: record.exact_address,
-    amenities: record.amenities,
-    images: record.images,
-    availability_status: record.availability_status,
-    is_verified: record.is_verified,
-    is_broker_free: record.is_broker_free,
-    water_availability: record.water_availability,
-    parking_bike: record.parking_bike,
-    parking_car: record.parking_car,
-    electricity_submeter: record.electricity_submeter,
-    bedrooms: record.bedrooms,
-    bathrooms: record.bathrooms,
-    area_sqft: record.area_sqft,
-    description: record.description,
-  },
-];
-
 export async function createListing(input: CreateListingInput): Promise<Listing> {
   const record = buildListingRecord(input);
-  let lastError: Error | null = null;
+  const { data, error } = await supabase.from("Listing").insert([record]).select("*").maybeSingle();
 
-  for (const candidate of buildInsertCandidates(record)) {
-    const { data, error } = await supabase.from("Listing").insert([candidate]).select("*").maybeSingle();
-
-    if (!error) {
-      const createdListing = normalizeListing((data as RawListing | null) ?? candidate);
-      persistLocalListing(createdListing);
-      return createdListing;
-    }
-
-    lastError = new Error(error.message);
+  if (error) {
+    throw new Error(`Failed to create listing: ${error.message}`);
   }
 
-  if (lastError) {
-    throw lastError;
-  }
-
-  throw new Error("Failed to create listing.");
+  const createdListing = normalizeListing((data as RawListing | null) ?? record);
+  persistLocalListing(createdListing);
+  return createdListing;
 }
