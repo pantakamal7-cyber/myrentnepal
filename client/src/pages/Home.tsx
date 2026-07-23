@@ -52,7 +52,9 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const verifiedListings = listings.filter((l) => l.is_verified && l.availability_status === "Available");
+  const verifiedListings = listings.filter(
+    (listing) => listing.is_verified && listing.availability_status === "Available",
+  );
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>

@@ -69,13 +69,13 @@ export async function fetchListings(): Promise<Listing[]> {
   try {
     const { data, error } = await supabase.from("Listing").select("*");
     if (error) {
-      console.warn("Supabase fetch failed:", error.message);
+      console.warn("Failed to fetch listings from Supabase:", error.message);
       return [];
     }
     if (!data || data.length === 0) return [];
     return data.map(normalizeListing);
   } catch (e) {
-    console.warn("Supabase fetch error:", e);
+    console.warn("Failed to fetch listings from Supabase:", e);
     return [];
   }
 }
@@ -102,7 +102,7 @@ export async function fetchListingById(id: string): Promise<Listing | undefined>
       return normalizeListing(byId.data[0] as RawListing);
     }
   } catch (e) {
-    console.warn("Supabase fetch by id error:", e);
+    console.warn(`Failed to fetch listing by id ${id} from Supabase:`, e);
   }
 
   return undefined;
