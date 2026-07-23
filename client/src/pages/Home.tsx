@@ -57,9 +57,7 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const availableVerifiedListings = listings.filter(
-    (listing) => listing.is_verified && listing.availability_status === "Available",
-  );
+  const homepageListings = listings.filter((listing) => listing.availability_status === "Available");
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -242,11 +240,11 @@ export default function Home() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-px bg-[#C4622D]" />
                 <span className="text-xs font-bold uppercase tracking-widest text-[#C4622D]">
-                  Fresh & Verified
+                  Freshly Listed
                 </span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-black text-[#1A1208]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Recently Verified Listings
+                Latest Listings
               </h2>
             </div>
             <button
@@ -258,7 +256,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {availableVerifiedListings.slice(0, 6).map((listing, i) => (
+            {homepageListings.slice(0, 6).map((listing, i) => (
               <PropertyCard key={listing.property_id} property={listing} index={i} />
             ))}
           </div>
