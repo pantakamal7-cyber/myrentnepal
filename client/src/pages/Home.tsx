@@ -240,7 +240,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {verifiedListings.slice(0, 6).map((listing, i) => (
-              <PropertyCard key={listing.property_id} listing={listing} index={i} />
+              <PropertyCard key={listing.property_id} property={listing} index={i} />
             ))}
           </div>
 
@@ -494,5 +494,4 @@ export default function Home() {
     </div>
   );
 }
-
 
