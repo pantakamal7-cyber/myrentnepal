@@ -3,7 +3,7 @@
  * Prioritizes real photos, large bold pricing, utility rules, and direct CTA buttons.
  * Includes Report button (Rule C), Broker-free confirmation, and expiry warning.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import {
   MapPin, Phone, MessageCircle, Flag, ShieldCheck, Ban, Clock,
@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { MOCK_LISTINGS, formatNPR, getDaysUntilExpiry } from "@/lib/data";
+import { type Listing, formatNPR, getDaysUntilExpiry } from "@/lib/data";
+import { fetchListingById, fetchListings } from "@/lib/supabase-data";
 import { MapView } from "@/components/Map";
 
 export default function PropertyDetail() {
@@ -26,8 +27,71 @@ export default function PropertyDetail() {
   const [reportReason, setReportReason] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [listing, setListing] = useState<Listing | undefined>();
+  const [related, setRelated] = useState<Listing[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const listing = MOCK_LISTINGS.find((l) => l.property_id === id);
+  useEffect(() => {
+    if (!id) {
+      setListing(undefined);
+      setRelated([]);
+      setIsLoading(false);
+      return;
+    }
+
+    let active = true;
+    setIsLoading(true);
+
+    Promise.all([fetchListingById(id), fetchListings()])
+      .then(([item, allListings]) => {
+        if (!active) return;
+
+        setListing(item);
+        if (!item) {
+          setRelated([]);
+          return;
+        }
+
+        setRelated(
+          allListings
+            .filter(
+              (l) =>
+                l.property_id !== item.property_id &&
+                l.location === item.location &&
+                l.availability_status === "Available",
+            )
+            .slice(0, 3),
+        );
+      })
+      .catch((error) => {
+        if (!active) return;
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Unable to load property details. Please try again or contact support if the problem persists.",
+        );
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading property details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!listing) {
     return (
@@ -39,7 +103,7 @@ export default function PropertyDetail() {
             <h2 className="text-2xl font-bold text-[#1A1208] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
               Listing Not Found
             </h2>
-            <p className="text-muted-foreground mb-4">This property may have been removed or rented.</p>
+            <p className="text-muted-foreground mb-4">{loadError || "This property may have been removed or rented."}</p>
             <button
               onClick={() => navigate("/listings")}
               className="bg-[#C4622D] text-white px-6 py-2.5 text-sm font-semibold hover:bg-[#a85226] transition-colors"
@@ -56,9 +120,6 @@ export default function PropertyDetail() {
 
   const daysLeft = getDaysUntilExpiry(listing.expiry_date);
   const isExpiringSoon = daysLeft <= 3 && daysLeft > 0;
-  const related = MOCK_LISTINGS.filter(
-    (l) => l.property_id !== listing.property_id && l.location === listing.location && l.availability_status === "Available"
-  ).slice(0, 3);
 
   const handleCall = () => {
     window.location.href = `tel:${listing.landlord_phone}`;
@@ -510,7 +571,9 @@ export default function PropertyDetail() {
                 Similar Properties Nearby
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {related.map((l, i) => <PropertyCard key={l.property_id} listing={l} index={i} />)}
+                {related.map((relatedListing, index) => (
+                  <PropertyCard key={relatedListing.property_id} property={relatedListing} index={index} />
+                ))}
               </div>
             </div>
           )}

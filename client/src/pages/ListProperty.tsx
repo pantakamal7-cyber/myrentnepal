@@ -1,4 +1,3 @@
-import { supabase } from '../supabaseClient';
 /*
  * MYRENT List Property Page – "Nepali Terracotta & Ink" Design
  * Includes Rule A: Broker Filter checkbox
@@ -14,7 +13,8 @@ import {
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { KATHMANDU_LOCATIONS, PROPERTY_TYPES, type DocumentType, type PropertyType } from "@/lib/data";
+import { createListing } from "@/lib/supabase-data";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -65,33 +65,47 @@ export default function ListProperty() {
       return;
     }
 
+    if (!form.full_name || !form.phone || !form.title || !form.property_type || !form.location || !form.exact_address || !form.price || !form.description) {
+      toast.error("Please complete all required listing details before submitting.");
+      return;
+    }
+
+    if (!form.doc_type) {
+      toast.error("Please select a verification document type.");
+      return;
+    }
+
     try {
-      // 1. Send form data matching your object mapping structure cleanly
-      const { data, error } = await supabase
-        .from('Listing') 
-        .insert([
-          { 
-            title: form.title, 
-            price: Number(form.price), 
-            is_verified: false 
-          }
-        ]);
-
-      if (error) {
-        console.error("Supabase Database Error:", error.message);
-        toast.error("Database submission failed: " + error.message);
-        return;
-      }
-
-      // 2. Transition user to the success screen
-      setSubmitted(true);
-      toast.success("Listing submitted for verification!", {
-        description: "Our team will review your documents within 24-48 hours.",
+      await createListing({
+        full_name: form.full_name,
+        phone: form.phone,
+        email: form.email,
+        title: form.title,
+        property_type: form.property_type as PropertyType,
+        location: form.location,
+        exact_address: form.exact_address,
+        price: Number(form.price),
+        deposit: Number(form.deposit || 0),
+        bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
+        bathrooms: form.bathrooms ? Number(form.bathrooms) : undefined,
+        area: form.area ? Number(form.area) : undefined,
+        description: form.description,
+        amenities: form.amenities,
+        water: form.water,
+        parking_bike: form.parking_bike,
+        parking_car: form.parking_car,
+        submeter: form.submeter,
+        broker_confirmed: form.broker_confirmed,
+        doc_type: form.doc_type as DocumentType,
       });
 
+      setSubmitted(true);
+      toast.success("Listing posted successfully!", {
+        description: "Your property is now visible on the site and will be reviewed for verification.",
+      });
     } catch (err) {
       console.error("Form Crash Protection:", err);
-      toast.error("An unexpected error occurred during submission.");
+      toast.error(err instanceof Error ? err.message : "An unexpected error occurred during submission.");
     }
   };
 
@@ -111,15 +125,15 @@ export default function ListProperty() {
               <CheckCircle2 size={40} className="text-[#7A8C6E]" />
             </div>
             <h2 className="text-3xl font-black text-[#1A1208] mb-3" style={{ fontFamily: "'Playfair Display', serif" }}>
-              Listing Submitted!
+              Listing Posted!
             </h2>
             <p className="text-muted-foreground mb-2">
-              Your property <strong>"{form.title}"</strong> has been submitted for verification.
+              Your property <strong>"{form.title}"</strong> is now live on MYRENT.
             </p>
             <div className="bg-[#F5EFE0] border border-border p-4 text-left mb-6 space-y-2" style={{ borderRadius: "2px" }}>
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={14} className="text-[#C4622D]" />
-                <span>Your listing will go live once documents are verified (24-48 hrs)</span>
+                <span>Your listing is visible now and our team will still review your details within 24-48 hours</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Clock size={14} className="text-amber-600" />

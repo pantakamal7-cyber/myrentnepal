@@ -3,7 +3,7 @@
  * Full-bleed hero with asymmetric search panel, verified listings grid,
  * how-it-works section, and anti-fraud trust signals
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import {
   Search, MapPin, SlidersHorizontal, ShieldCheck, Ban, Clock,
@@ -12,7 +12,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import PropertyCard from "@/components/PropertyCard";
-import { MOCK_LISTINGS, KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { type Listing, KATHMANDU_LOCATIONS, PROPERTY_TYPES } from "@/lib/data";
+import { fetchListings } from "@/lib/supabase-data";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310519663755386170/8e4NgY2DZA8BzBnmerH6zW/hero_kathmandu-n5m7iM9LSMmw95w8MNqWwJ.webp";
 
@@ -21,6 +22,23 @@ export default function Home() {
   const [searchLocation, setSearchLocation] = useState("");
   const [searchType, setSearchType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [listingsError, setListingsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetchListings()
+      .then((data) => {
+        if (active) setListings(data);
+      })
+      .catch((error) => {
+        if (active) setListingsError(error instanceof Error ? error.message : "Failed to load listings.");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
     // 🚀 Force clean hard-redirect parameters to clear sticky React state containers
   const handleSearch = (e: React.FormEvent) => {
@@ -39,8 +57,7 @@ export default function Home() {
     window.location.href = `/listings?location=${encodeURIComponent(areaName)}`;
   };
 
-  const verifiedListings = MOCK_LISTINGS.filter((l) => l.is_verified && l.availability_status === "Available");
-  const recentListings = MOCK_LISTINGS.filter((l) => l.availability_status === "Available").slice(0, 6);
+  const homepageListings = listings.filter((listing) => listing.availability_status === "Available");
 
   return (
     <div className="min-h-screen flex flex-col" style={{ fontFamily: "'DM Sans', sans-serif" }}>
@@ -223,11 +240,11 @@ export default function Home() {
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-6 h-px bg-[#C4622D]" />
                 <span className="text-xs font-bold uppercase tracking-widest text-[#C4622D]">
-                  Fresh & Verified
+                  Freshly Listed
                 </span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-black text-[#1A1208]" style={{ fontFamily: "'Playfair Display', serif" }}>
-                Recently Verified Listings
+                Latest Listings
               </h2>
             </div>
             <button
@@ -239,10 +256,13 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {verifiedListings.slice(0, 6).map((listing, i) => (
-              <PropertyCard key={listing.property_id} listing={listing} index={i} />
+            {homepageListings.slice(0, 6).map((listing, i) => (
+              <PropertyCard key={listing.property_id} property={listing} index={i} />
             ))}
           </div>
+          {listingsError && (
+            <p className="mt-4 text-sm text-red-600">{listingsError}</p>
+          )}
 
           <div className="mt-8 text-center sm:hidden">
             <button
@@ -494,5 +514,3 @@ export default function Home() {
     </div>
   );
 }
-
-

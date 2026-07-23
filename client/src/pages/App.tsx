@@ -87,8 +87,8 @@ export default function App() {
       <Route path="/Anti-Fraud-Policy" component={AntiFraud} />
       <Route path="/report" component={ReportListing} />
       <Route path="/report-listing" component={ReportListing} />
-      <Route path="/verification" component={Verification} />
-      <Route path="/verification-process" component={Verification} />
+      <Route path="/verification" component={VerificationPage} />
+      <Route path="/verification-process" component={VerificationPage} />
       <Route path="/faq" component={FAQ} />
       <Route path="/faqs" component={FAQ} />
 
@@ -97,5 +97,4 @@ export default function App() {
     </Switch>
   );
 }
-
 
