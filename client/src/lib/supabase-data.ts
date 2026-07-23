@@ -25,7 +25,9 @@ const toDateOnly = (value: unknown, fallbackDate: Date): string => {
   return date.toISOString().slice(0, 10);
 };
 
-const normalizeListing = (raw: any): Listing => {
+type RawListing = Record<string, unknown>;
+
+const normalizeListing = (raw: RawListing): Listing => {
   const now = new Date();
   const defaultExpiry = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
@@ -79,6 +81,29 @@ export async function fetchListings(): Promise<Listing[]> {
 }
 
 export async function fetchListingById(id: string): Promise<Listing | undefined> {
-  const allListings = await fetchListings();
-  return allListings.find((listing) => listing.property_id === id);
+  try {
+    const byPropertyId = await supabase
+      .from("Listing")
+      .select("*")
+      .eq("property_id", id)
+      .limit(1);
+
+    if (!byPropertyId.error && byPropertyId.data && byPropertyId.data.length > 0) {
+      return normalizeListing(byPropertyId.data[0] as RawListing);
+    }
+
+    const byId = await supabase
+      .from("Listing")
+      .select("*")
+      .eq("id", id)
+      .limit(1);
+
+    if (!byId.error && byId.data && byId.data.length > 0) {
+      return normalizeListing(byId.data[0] as RawListing);
+    }
+  } catch (e) {
+    console.warn("Supabase fetch by id error:", e);
+  }
+
+  return undefined;
 }
